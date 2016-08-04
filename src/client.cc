@@ -16,7 +16,7 @@
 
 #include "client.h"
 
-#define PORT "3490" // the port client will be connecting to 
+//#define PORT "3490" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
@@ -30,8 +30,9 @@ void * Client::get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int Client::send(int argc, char *argv[])
+int Client::send(int port, std::queue<std::function<void()>> pending_ops_q)
 {
+		auto PORT = port;
     int sockfd, numbytes;  
     char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;

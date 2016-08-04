@@ -13,10 +13,12 @@ include <msgpack.hpp>
 
 class Node {
 public:
+	void start(std::string ip, std::string port);
+	Node(){
+		n_server = 
 
 private:
-	void start(std::string ip, std::string port);
-
+	
 	Server n_server;
 	Client n_client;
 

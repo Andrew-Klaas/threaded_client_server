@@ -7,13 +7,11 @@ void node::start(std::string ip, std::string port) {
   //unsigned int nthreads = std::thread::hardware_concurrency();
 	
 	// start client thread
-  client_thread = std::thread([&] { this->n_client.start(port); });
+  client_thread = std::thread([&] { this->n_client.start(port, this->pending_ops_q); });
 	// start server thread
-  server_thread = std::thread([&] { this->n_server.serve(port); });
+  server_thread = std::thread([&] { this->n_server.serve(port, this->pending_send_q); });
 
-	// how do i want to spawn workers?
-  //dht_worker_thread = std::thread(&node::run, this);
-
+	// worker_thread std::thread([&] { this->n_server.serve(port, this->pending_send_q); });
 
 }
 

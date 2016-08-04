@@ -12,13 +12,12 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <functional>
 
 class Client {
 public:
 	void *get_in_addr(struct sockaddr *sa);
-	int send(int argc, char *argv[]);
-
-
+	int send(int port, std::queue<std::function<void()>> pending_ops_q);
 
 
 };
