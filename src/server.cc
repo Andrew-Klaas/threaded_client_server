@@ -25,7 +25,7 @@ void * Server::get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int Server::serve(void)
+int Server::serve(std::string port, std::queue<std::function<void()>> pending_ops_q)
 {
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
@@ -104,6 +104,8 @@ int Server::serve(void)
             s, sizeof s);
         printf("server: got connection from %s\n", s);
 
+        // handle message, how should i do this?
+        // spawn new worker, reply back to client?
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
             if (send(new_fd, "Hello, world!", 13, 0) == -1)
@@ -111,6 +113,7 @@ int Server::serve(void)
             close(new_fd);
             exit(0);
         }
+
         close(new_fd);  // parent doesn't need this
     }
 

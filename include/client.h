@@ -13,12 +13,16 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <functional>
+#include <queue>
+#include <string>
+#include <vector>
 
 class Client {
 public:
 	void *get_in_addr(struct sockaddr *sa);
-	int send(int port, std::queue<std::function<void()>> pending_ops_q);
+	int serve(std::string ip, std::string port, std::queue<std::vector<std::string>> pending_send_q );
 
+  bool Running;
 
 };
 

@@ -14,11 +14,12 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <msgpack.hpp>
+#include <queue>
 
 class Server {
 public: 
-	int serve(void);
-	void *get_in_addr(struct sockaddr *sa);
+	int serve(std::string port, std::queue<std::function<void()>> pending_ops_q);
+	void * get_in_addr(struct sockaddr *sa);
 
 };
 #endif

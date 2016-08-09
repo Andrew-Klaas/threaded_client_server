@@ -3,15 +3,28 @@
 
 	
 
-void node::start(std::string ip, std::string port) {
+void Node::start(std::string ip, std::string port) {
   //unsigned int nthreads = std::thread::hardware_concurrency();
+  Running = true;
 	
-	// start client thread
-  client_thread = std::thread([&] { this->n_client.start(port, this->pending_ops_q); });
-	// start server thread
-  server_thread = std::thread([&] { this->n_server.serve(port, this->pending_send_q); });
+  // start server thread
+  server_thread = std::thread([&] { 
+      this->n_server.serve(port, this->pending_ops_q); 
+  });
 
+  sleep(2);
+
+	// start client thread
+  client_thread = std::thread([&] { 
+      this->n_client.serve(ip, port, this->pending_send_q); 
+  });
+	
 	// worker_thread std::thread([&] { this->n_server.serve(port, this->pending_send_q); });
+
+  while(Running){
+  }
+  server_thread.join();
+  client_thread.join();
 
 }
 

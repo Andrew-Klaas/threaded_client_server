@@ -30,7 +30,7 @@ void * Client::get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int Client::send(int port, std::queue<std::function<void()>> pending_ops_q)
+int Client::serve(std::string ip, std::string port, std::queue<std::vector<std::string>> pending_send_q)
 {
 		auto PORT = port;
     int sockfd, numbytes;  
@@ -39,58 +39,105 @@ int Client::send(int port, std::queue<std::function<void()>> pending_ops_q)
     int rv;
     char s[INET6_ADDRSTRLEN];
 
+    /*
     if (argc != 2) {
         fprintf(stderr,"usage: client hostname\n");
         exit(1);
     }
+    */
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return 1;
-    }
+    Running = true;
+    printf("client running\n");
+    
+    while (Running) {
+      if (!pending_send_q.empty()) {
+       auto pending_send = pending_send_q.front();
+       // std::move or pop? performance
+       pending_send_q.pop();
 
-    // loop through all the results and connect to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
-            perror("client: socket");
-            continue;
+       auto packed_msg pack_message(pending_send); 
+  /*
+  std::vector<std::string> vec;
+  vec.push_back("0");
+  vec.push_back("K");
+  vec.push_back("cat");
+  vec.push_back("V");
+  vec.push_back("7");
+  msgpack::sbuffer buffer;
+  msgpack::pack(buffer, vec);
+  */
+       
+       if ((rv = getaddrinfo(NULL, "3490", &hints, &servinfo)) != 0) {
+            fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+            return 1;
         }
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            perror("client: connect");
-            continue;
+        // loop through all the results and connect to the first we can
+        for(p = servinfo; p != NULL; p = p->ai_next) {
+            if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                    p->ai_protocol)) == -1) {
+                perror("client: socket");
+                continue;
+            }
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                close(sockfd);
+                perror("client: connect");
+                continue;
+            }
+            break;
         }
 
-        break;
-    }
+        if (p == NULL) {
+            fprintf(stderr, "client: failed to connect\n");
+            return 2;
+        }
 
-    if (p == NULL) {
-        fprintf(stderr, "client: failed to connect\n");
-        return 2;
-    }
+        inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+                s, sizeof s);
+        printf("client: connecting to %s\n", s);
 
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-            s, sizeof s);
-    printf("client: connecting to %s\n", s);
+        freeaddrinfo(servinfo); // all done with this structure
 
-    freeaddrinfo(servinfo); // all done with this structure
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+            perror("recv");
+            exit(1);
+        }
 
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
-    }
+        buf[numbytes] = '\0';
 
-    buf[numbytes] = '\0';
-
-    printf("client: received '%s'\n",buf);
-
+        printf("client: received '%s'\n",buf);
+      } // if statement
+    } // while loop
     close(sockfd);
 
     return 0;
 }
+
+
+  pack_message(std::vector<std::string> pending_send); 
+
+
+
+  std::vector<std::string> vec;
+  vec.push_back("0");
+  vec.push_back("K");
+  vec.push_back("cat");
+  vec.push_back("V");
+  vec.push_back("7");
+  msgpack::sbuffer buffer;
+  msgpack::pack(buffer, vec);
+
+/*
+	if ((numbytes = sendto(sockfd, (char*)buffer.data(), buffer.size(), 0,
+			 p->ai_addr, p->ai_addrlen)) == -1) {
+		perror("talker: sendto");
+		exit(1);
+}
+*/
+
+}
+
