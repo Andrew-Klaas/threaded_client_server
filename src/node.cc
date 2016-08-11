@@ -1,8 +1,5 @@
 #include "node.h"
 
-
-	
-
 void Node::start(std::string ip, std::string port) {
   //unsigned int nthreads = std::thread::hardware_concurrency();
   Running = true;
@@ -12,34 +9,98 @@ void Node::start(std::string ip, std::string port) {
       this->n_server.serve(port, this->pending_ops_q); 
   });
 
-  sleep(2);
-
-	// start client thread
+  // start client thread
   client_thread = std::thread([&] { 
-      this->n_client.serve(ip, port, this->pending_send_q); 
+      this->n_client.serve(ip, port, this->pending_send_q, send_mtx); 
   });
 	
-	// worker_thread std::thread([&] { this->n_server.serve(port, this->pending_send_q); });
+  run_thread  = std::thread([&] { 
+    while(Running){
+      /*
+      decltype(pending_ops_q) pending_ops {};
+      { 
+        std::lock_guard<std::mutex> lck(pending_mtx);
+        pending_ops = std::move(pending_ops_q);
+      }
+      while (!pending_ops.empty()) {
+        //pending_ops.front()(); //whats going on here
+        pending_ops.pop();
+      }
 
-  while(Running){
-  }
-  server_thread.join();
-  client_thread.join();
+      decltype(recv_q) recv {};
+      {
+          std::lock_guard<std::mutex> lck(recv_mtx);
+          recv = std::move(recv_q);
+      }
+      */
+    }
+  });
 
 }
 
-// worker 
-//worker threads watching queues
+void Node::join() {
+  run_thread.join();
+  server_thread.join();
+  client_thread.join();
+}
+
+std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
+  //std::lock_guard<std::mutex> lck(storage_mtx); 
+  //pending_ops_q.emplace([=](){
+  //    sendReqPeerID(ip, port, length);
+  //});
+  //cv.notify_all();
+  return "TODO";
+}
+
+void sendReqPeerID(std::string ip, std::string port, std::size_t length){
+  //fill out networking struct
+  //n_client.prepareSend(
+
+  //pending_send_q.emplace()
+}
+
+std::string Node::random_string( std::size_t length ) {
+    auto randchar = []() -> char
+    {
+        const char charset[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(length,0);
+    std::generate_n( str.begin(), length, randchar );
+    return str;
+}
+
 /*
-void node::run(){
-	  bool running = true;
-    while (running) {
-      std::lock_guard<std::mutex> lck(storage_mtx);
-      auto ops = std::move(rcv_q);
-      if (!ops.empty()) {
-        printf("runner executing op\n");
-        ops.front()();
-      }
-    } 
+void Node::prepareSockRpcSend(rpc_msg& rpc, std::string ip, std::string port);
+  rpc->ip = ip;
+  rpc->port = port;
+  memset(&(rpc->hints), 0, sizeof rpc->hints);
+  rpc->hints.ai_family = AF_UNSPEC;
+  rpc->hints.ai_socktype = SOCK_STREAM;
+}
+*/
+
+void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port){ 
+  rpc.ip = ip;
+  rpc.port = port;
+  rpc.vec.push_back(rpc.ip);    
+  rpc.vec.push_back(rpc.port);    
+  rpc.vec.push_back(fn); //ping    
+  rpc.vec.push_back("");  // No data
+  msgpack::pack(rpc.buffer, rpc.vec);
+}
+
+/*
+unsigned char *ReqHash(std::string ip, std::string port, string fn, const unsigned char & data){
+  //std::lock_guard<std::mutex> lck(storage_mtx); 
+  pending_ops_q.emplace([=](Worker& worker){
+      worker.sendReqHash(ip, port, fn,data);
+  });
+  //cv.notify_all();
 }
 */

@@ -11,14 +11,10 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
 #include <arpa/inet.h>
-
 #include "client.h"
 
 //#define PORT "3490" // the port client will be connecting to 
-
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 // get sockaddr, IPv4 or IPv6:
 void * Client::get_in_addr(struct sockaddr *sa)
@@ -26,56 +22,45 @@ void * Client::get_in_addr(struct sockaddr *sa)
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
-
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int Client::serve(std::string ip, std::string port, std::queue<std::vector<std::string>> pending_send_q)
-{
-		auto PORT = port;
-    int sockfd, numbytes;  
-    char buf[MAXDATASIZE];
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
-    char s[INET6_ADDRSTRLEN];
-
-    /*
-    if (argc != 2) {
-        fprintf(stderr,"usage: client hostname\n");
-        exit(1);
-    }
-    */
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
+int Client::serve(std::string ip, std::string port, 
+    std::queue<rpc_msg>& pending_send_q, 
+    std::mutex& send_mtx) {
 
     Running = true;
     printf("client running\n");
-    
     while (Running) {
       if (!pending_send_q.empty()) {
-       auto pending_send = pending_send_q.front();
-       // std::move or pop? performance
-       pending_send_q.pop();
 
-       auto packed_msg pack_message(pending_send); 
-  /*
-  std::vector<std::string> vec;
-  vec.push_back("0");
-  vec.push_back("K");
-  vec.push_back("cat");
-  vec.push_back("V");
-  vec.push_back("7");
-  msgpack::sbuffer buffer;
-  msgpack::pack(buffer, vec);
-  */
+        int sockfd, numbytes, bytes_sent;
+        int rv;
+        struct addrinfo hints, *servinfo, *p;
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        char s[INET6_ADDRSTRLEN];
+
+        std::lock_guard<std::mutex> lck(send_mtx);
+        auto rpc = std::move(pending_send_q.front());
+        pending_send_q.pop();
+        
+        //auto sockfd = std::move(rpc.sockfd);
+        //auto numbytes = std::move(rpc.numbytes);
+        //auto rv = std::move(rpc.rv);
+        auto ip = std::move(rpc.ip);
+        auto port = std::move(rpc.port);
+        //auto hints = std::move(rpc.hints);
+        //auto servinfo = std::move(rpc.servinfo);
+        //auto p = std::move(rpc.p);
+        auto buffer = std::move(rpc.buffer);
+        //*/
        
-       if ((rv = getaddrinfo(NULL, "3490", &hints, &servinfo)) != 0) {
+        if ((rv = getaddrinfo(ip.c_str(), port.c_str(), &hints, &servinfo)) != 0) {
             fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
             return 1;
         }
-
         // loop through all the results and connect to the first we can
         for(p = servinfo; p != NULL; p = p->ai_next) {
             if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -98,46 +83,19 @@ int Client::serve(std::string ip, std::string port, std::queue<std::vector<std::
 
         inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
                 s, sizeof s);
+        
         printf("client: connecting to %s\n", s);
 
         freeaddrinfo(servinfo); // all done with this structure
-
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-            perror("recv");
-            exit(1);
+        
+        if (send(sockfd, (char*)buffer.data(), buffer.size(), 0) == -1) {
+               perror("send");
         }
-
-        buf[numbytes] = '\0';
-
-        printf("client: received '%s'\n",buf);
+        close(sockfd);
       } // if statement
     } // while loop
-    close(sockfd);
 
     return 0;
 }
 
-
-  pack_message(std::vector<std::string> pending_send); 
-
-
-
-  std::vector<std::string> vec;
-  vec.push_back("0");
-  vec.push_back("K");
-  vec.push_back("cat");
-  vec.push_back("V");
-  vec.push_back("7");
-  msgpack::sbuffer buffer;
-  msgpack::pack(buffer, vec);
-
-/*
-	if ((numbytes = sendto(sockfd, (char*)buffer.data(), buffer.size(), 0,
-			 p->ai_addr, p->ai_addrlen)) == -1) {
-		perror("talker: sendto");
-		exit(1);
-}
-*/
-
-}
 

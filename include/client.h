@@ -1,7 +1,6 @@
 #ifndef CLIENT_H_
 #define CLIENT_H_
 
-//common.h ?
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,11 +15,17 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <mutex>
+
+#include "types.h"
 
 class Client {
 public:
+  int NodeID;
 	void *get_in_addr(struct sockaddr *sa);
-	int serve(std::string ip, std::string port, std::queue<std::vector<std::string>> pending_send_q );
+	int serve(std::string ip, std::string port, 
+      std::queue<rpc_msg>& pending_send_q, 
+      std::mutex& send_mtx);
 
   bool Running;
 

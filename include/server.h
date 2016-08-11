@@ -15,9 +15,12 @@
 #include <signal.h>
 #include <msgpack.hpp>
 #include <queue>
+#include <mutex>
+
 
 class Server {
 public: 
+  int NodeID;
 	int serve(std::string port, std::queue<std::function<void()>> pending_ops_q);
 	void * get_in_addr(struct sockaddr *sa);
 
