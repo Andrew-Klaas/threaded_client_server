@@ -37,30 +37,26 @@ int Client::serve(std::string ip, std::string port,
         int sockfd, numbytes, bytes_sent;
         int rv;
         struct addrinfo hints, *servinfo, *p;
+        char s[INET6_ADDRSTRLEN];
+        
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-        char s[INET6_ADDRSTRLEN];
 
         std::lock_guard<std::mutex> lck(send_mtx);
         auto rpc = std::move(pending_send_q.front());
+        std::cout << "buffer: " << rpc.buffer.data() << std::endl;
         pending_send_q.pop();
         
-        //auto sockfd = std::move(rpc.sockfd);
-        //auto numbytes = std::move(rpc.numbytes);
-        //auto rv = std::move(rpc.rv);
         auto ip = std::move(rpc.ip);
         auto port = std::move(rpc.port);
-        //auto hints = std::move(rpc.hints);
-        //auto servinfo = std::move(rpc.servinfo);
-        //auto p = std::move(rpc.p);
         auto buffer = std::move(rpc.buffer);
-        //*/
-       
-        if ((rv = getaddrinfo(ip.c_str(), port.c_str(), &hints, &servinfo)) != 0) {
+        
+        if ((rv = getaddrinfo(ip.c_str() ,port.c_str(), &hints, &servinfo)) != 0) {
             fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
             return 1;
         }
+
         // loop through all the results and connect to the first we can
         for(p = servinfo; p != NULL; p = p->ai_next) {
             if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -68,11 +64,13 @@ int Client::serve(std::string ip, std::string port,
                 perror("client: socket");
                 continue;
             }
+
             if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
                 close(sockfd);
                 perror("client: connect");
                 continue;
             }
+
             break;
         }
 
@@ -85,12 +83,25 @@ int Client::serve(std::string ip, std::string port,
                 s, sizeof s);
         
         printf("client: connecting to %s\n", s);
-
         freeaddrinfo(servinfo); // all done with this structure
-        
+
+        /*
+  std::vector<std::string> vec;
+  vec.push_back("0");
+  vec.push_back("K");
+  vec.push_back("cat");
+  vec.push_back("V");
+  vec.push_back("7");
+  msgpack::sbuffer buffer;
+  msgpack::pack(buffer, vec);
+  //std::cout << buffer.data() <<  " " << sizeof buffer.data() << std::endl;
+  //printf("Socket %d \n",sockfd);
+  */
+    
         if (send(sockfd, (char*)buffer.data(), buffer.size(), 0) == -1) {
                perror("send");
         }
+        
         close(sockfd);
       } // if statement
     } // while loop

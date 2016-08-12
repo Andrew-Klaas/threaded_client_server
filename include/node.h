@@ -38,6 +38,8 @@ public:
   void packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port);
   void join();
 
+  std::mutex recv_mtx {};
+  std::mutex send_mtx {};
 
 private:
 	
@@ -51,9 +53,7 @@ private:
   std::thread server_thread {};
   std::thread run_thread {};
 	std::mutex pending_mtx {};
-  std::mutex recv_mtx {};
-  std::mutex send_mtx {};
-
+  
   bool Running;
 
 
@@ -67,19 +67,3 @@ private:
 
 #endif 
 
-/*
-  std::vector<std::string> vec;
-  vec.push_back("0");
-  vec.push_back("K");
-  vec.push_back("cat");
-  vec.push_back("V");
-  vec.push_back("7");
-  msgpack::sbuffer buffer;
-  msgpack::pack(buffer, vec);
-
-	if ((numbytes = sendto(sockfd, (char*)buffer.data(), buffer.size(), 0,
-			 p->ai_addr, p->ai_addrlen)) == -1) {
-		perror("talker: sendto");
-		exit(1);
-}
-*/

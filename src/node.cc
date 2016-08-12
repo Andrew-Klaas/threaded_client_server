@@ -6,7 +6,7 @@ void Node::start(std::string ip, std::string port) {
 	
   // start server thread
   server_thread = std::thread([&] { 
-      this->n_server.serve(port, this->pending_ops_q); 
+      this->n_server.serve(port, this->recv_q, recv_mtx); 
   });
 
   // start client thread
@@ -16,17 +16,17 @@ void Node::start(std::string ip, std::string port) {
 	
   run_thread  = std::thread([&] { 
     while(Running){
-      /*
       decltype(pending_ops_q) pending_ops {};
       { 
         std::lock_guard<std::mutex> lck(pending_mtx);
         pending_ops = std::move(pending_ops_q);
       }
       while (!pending_ops.empty()) {
-        //pending_ops.front()(); //whats going on here
+        pending_ops.front()(); //whats going on here
         pending_ops.pop();
       }
 
+      /*
       decltype(recv_q) recv {};
       {
           std::lock_guard<std::mutex> lck(recv_mtx);
@@ -45,19 +45,20 @@ void Node::join() {
 }
 
 std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
-  //std::lock_guard<std::mutex> lck(storage_mtx); 
-  //pending_ops_q.emplace([=](){
-  //    sendReqPeerID(ip, port, length);
-  //});
+  std::lock_guard<std::mutex> lck(pending_mtx); 
+  pending_ops_q.emplace([=](){
+      sendReqPeerID(ip, port, length);
+  });
   //cv.notify_all();
   return "TODO";
 }
 
-void sendReqPeerID(std::string ip, std::string port, std::size_t length){
-  //fill out networking struct
-  //n_client.prepareSend(
+void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
+  // fix this
+  rpc_msg rpc;
+  packRpcSendReq(rpc, "1", ip, port);
+  pending_send_q.emplace(std::move(rpc));
 
-  //pending_send_q.emplace()
 }
 
 std::string Node::random_string( std::size_t length ) {
@@ -71,7 +72,7 @@ std::string Node::random_string( std::size_t length ) {
         return charset[ rand() % max_index ];
     };
     std::string str(length,0);
-    std::generate_n( str.begin(), length, randchar );
+    std::generate_n(str.begin(), length, randchar );
     return str;
 }
 

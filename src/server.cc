@@ -29,10 +29,11 @@ void * Server::get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int Server::serve(std::string port, std::queue<std::function<void()>> pending_ops_q)
-{
+int Server::serve(std::string port,
+    std::queue<rpc_msg>& recv_q, 
+    std::mutex& recv_mtx) {
 
-    printf("Server Starting\n"); //TODO change to nodeid
+    printf("Server Starting on %s  \n", port.c_str()); //TODO change to nodeid
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
@@ -42,7 +43,8 @@ int Server::serve(std::string port, std::queue<std::function<void()>> pending_op
     struct sockaddr_storage remoteaddr; // client address
     socklen_t addrlen;
 
-    char buf[256];    // buffer for client data
+    //char buf[256];    // buffer for client data
+    msgpack::sbuffer buf;
     int nbytes;
 
     char remoteIP[INET6_ADDRSTRLEN];
@@ -60,7 +62,7 @@ int Server::serve(std::string port, std::queue<std::function<void()>> pending_op
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
+    if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &ai)) != 0) {
         fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
         exit(1);
     }
@@ -103,6 +105,8 @@ int Server::serve(std::string port, std::queue<std::function<void()>> pending_op
     fdmax = listener; // so far, it's this one
 
     // main loop
+
+    //printf("server: waiting for connections\n");
     for(;;) {
         read_fds = master; // copy it
         if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
@@ -136,27 +140,41 @@ int Server::serve(std::string port, std::queue<std::function<void()>> pending_op
                     }
                 } else {
                     // handle data from a client
-                    if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+                    // fix 4096
+                    if ((nbytes = recv(i, (char*)buf.data(), 100, 0)) <= 0) {
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            printf("selectserver: socket %d hung up\n", i);
+                            printf("selectserver: socket %d hung up, no bytes\n", i);
                         } else {
                             perror("recv");
                         }
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        printf("Node %d Received msg from client", 0); // use NodeID
+                        printf("Node %d Received msg from client\n", 0); // use NodeID
+
+                        std::cout << "msg received: " << buf.data() << "size " << sizeof buf.data() <<  "\n";
+                        
+                        // TODO fix the freaking hard code
+                        msgpack::object_handle oh = msgpack::unpack(buf.data(), 100);
+                        msgpack::object obj = oh.get();
+                        std::vector<std::string> rvec;
+                        obj.convert(rvec);
+                        for (auto& i : rvec) {
+                          std::cout << i << std::endl;
+                        }
+
+
                         // we got some data from a client
                         for(j = 0; j <= fdmax; j++) {
                             // send to everyone!
                             if (FD_ISSET(j, &master)) {
                                 // except the listener and ourselves
                                 if (j != listener && j != i) {
-                                    if (sendMsg(j, buf, nbytes, 0) == -1) {
-                                        perror("send");
-                                    }
+                                    //if (sendMsg(j, buf, nbytes, 0) == -1) {
+                                    //    perror("send");
+                                    //}
                                 }
                             }
                         }
@@ -175,3 +193,6 @@ int sendMsg(int fd, char * buf, int nbytes, int blah){
   }
   return  0;
 }
+
+
+
