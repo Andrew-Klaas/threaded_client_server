@@ -22,7 +22,8 @@
 
 class Client {
 public:
-  int NodeID;
+  Client(int);
+  int nodeID;
 	void *get_in_addr(struct sockaddr *sa);
 	int serve(std::string ip, std::string port, 
       std::queue<rpc_msg>& pending_send_q, 

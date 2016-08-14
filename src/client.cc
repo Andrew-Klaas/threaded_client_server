@@ -15,6 +15,7 @@
 #include "client.h"
 
 //#define PORT "3490" // the port client will be connecting to 
+Client::Client(int NodeID) : nodeID(NodeID) {};
 
 // get sockaddr, IPv4 or IPv6:
 void * Client::get_in_addr(struct sockaddr *sa)
@@ -30,7 +31,7 @@ int Client::serve(std::string ip, std::string port,
     std::mutex& send_mtx) {
 
     Running = true;
-    printf("client running\n");
+    //printf("client running\n");
     while (Running) {
       if (!pending_send_q.empty()) {
 
@@ -45,7 +46,7 @@ int Client::serve(std::string ip, std::string port,
 
         std::lock_guard<std::mutex> lck(send_mtx);
         auto rpc = std::move(pending_send_q.front());
-        std::cout << "buffer: " << rpc.buffer.data() << std::endl;
+        //std::cout << "buffer: " << rpc.buffer.data() << std::endl;
         pending_send_q.pop();
         
         auto ip = std::move(rpc.ip);
@@ -82,7 +83,6 @@ int Client::serve(std::string ip, std::string port,
         inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
                 s, sizeof s);
         
-        printf("client: connecting to %s\n", s);
         freeaddrinfo(servinfo); // all done with this structure
 
         /*
@@ -101,8 +101,8 @@ int Client::serve(std::string ip, std::string port,
         if (send(sockfd, (char*)buffer.data(), buffer.size(), 0) == -1) {
                perror("send");
         }
-        
         close(sockfd);
+
       } // if statement
     } // while loop
 

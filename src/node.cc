@@ -1,5 +1,7 @@
 #include "node.h"
 
+Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
+
 void Node::start(std::string ip, std::string port) {
   //unsigned int nthreads = std::thread::hardware_concurrency();
   Running = true;
@@ -26,22 +28,57 @@ void Node::start(std::string ip, std::string port) {
         pending_ops.pop();
       }
 
-      /*
-      decltype(recv_q) recv {};
+      decltype(recv_q) recv_ops {};
       {
           std::lock_guard<std::mutex> lck(recv_mtx);
-          recv = std::move(recv_q);
+          recv_ops = std::move(recv_q);
       }
-      */
+      while (!recv_ops.empty()) {
+          msg_handler(recv_ops.front());
+          recv_ops.pop();
+      }
     }
   });
 
 }
 
-void Node::join() {
-  run_thread.join();
-  server_thread.join();
-  client_thread.join();
+void Node::msg_handler(std::vector<std::string> args){
+
+  /*
+  for (auto& i : args) {
+    std::cout << i << std::endl;
+  }
+  */
+  std::lock_guard<std::mutex> lck(pending_mtx); 
+  int result = stoi(args[2]);
+  //printf("result is %d\n", result);
+
+   switch(result) {
+     case 0:
+       //printf("0\n");
+       //printf("handler function case 0\n");
+       break;
+     case 1:
+       //printf("1\n");
+       pending_ops_q.emplace([=](){
+           sendReplyPeerID(args[0],args[1],stoi(args[3]));
+       });
+       //cv.notify_all();
+       break;
+     case 2:
+       //printf("2\n");
+       pending_ops_q.emplace([=](){
+       printPeerID(args[3]);
+     });
+       //cv.notify_all();
+       break;
+     default: break;
+   }
+   //printf("undefined function\n");
+
+}
+void Node::printPeerID(std::string result) {
+  std::cout<< "Node: " << nodeID << " PEERID RESULT: " << result << "\n";  
 }
 
 std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
@@ -56,11 +93,25 @@ std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length
 void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
   // fix this
   rpc_msg rpc;
-  packRpcSendReq(rpc, "1", ip, port);
+  auto length_s = std::to_string(length);
+  std::vector<std::string> args = { length_s };
+  packRpcSendReq(rpc, "1", ip, port, args);
   pending_send_q.emplace(std::move(rpc));
 
 }
 
+void Node::sendReplyPeerID(std::string ip, std::string port, std::size_t length){
+  // fix this
+  rpc_msg rpc;
+  //printf("length is %lu\n", length);
+  auto result = random_string(length);
+  std::vector<std::string> args = { result };
+  //std::cout << "result is: " << result << std::endl;
+  packRpcSendReq(rpc, "2", ip, port, args);
+  //pending_send_q.emplace(std::move(rpc));
+  pending_send_q.emplace(std::move(rpc));
+
+}
 std::string Node::random_string( std::size_t length ) {
     auto randchar = []() -> char
     {
@@ -75,24 +126,13 @@ std::string Node::random_string( std::size_t length ) {
     std::generate_n(str.begin(), length, randchar );
     return str;
 }
-
-/*
-void Node::prepareSockRpcSend(rpc_msg& rpc, std::string ip, std::string port);
-  rpc->ip = ip;
-  rpc->port = port;
-  memset(&(rpc->hints), 0, sizeof rpc->hints);
-  rpc->hints.ai_family = AF_UNSPEC;
-  rpc->hints.ai_socktype = SOCK_STREAM;
-}
-*/
-
-void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port){ 
+void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port, std::vector<std::string>& args){ 
   rpc.ip = ip;
   rpc.port = port;
   rpc.vec.push_back(rpc.ip);    
   rpc.vec.push_back(rpc.port);    
   rpc.vec.push_back(fn); //ping    
-  rpc.vec.push_back("");  // No data
+  rpc.vec.push_back(args[0]);  // No data
   msgpack::pack(rpc.buffer, rpc.vec);
 }
 
@@ -105,3 +145,11 @@ unsigned char *ReqHash(std::string ip, std::string port, string fn, const unsign
   //cv.notify_all();
 }
 */
+
+void Node::join() {
+  run_thread.join();
+  server_thread.join();
+  client_thread.join();
+}
+
+

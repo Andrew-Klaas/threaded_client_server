@@ -4,6 +4,7 @@
 
 #define BACKLOG 10     // how many pending connections queue will hold
 
+Server::Server(int NodeID) : nodeID(NodeID) {};
 
 int sendMsg(int fd, char * buf, int nbytes, int blah);
 
@@ -30,10 +31,10 @@ void * Server::get_in_addr(struct sockaddr *sa)
 }
 
 int Server::serve(std::string port,
-    std::queue<rpc_msg>& recv_q, 
+    std::queue<std::vector<std::string>>& recv_q, 
     std::mutex& recv_mtx) {
 
-    printf("Server Starting on %s  \n", port.c_str()); //TODO change to nodeid
+    printf("Node %d, Server Starting on %s  \n", nodeID, port.c_str()); //TODO change to nodeid
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
@@ -131,12 +132,14 @@ int Server::serve(std::string port,
                         if (newfd > fdmax) {    // keep track of the max
                             fdmax = newfd;
                         }
+                        /*
                         printf("selectserver: new connection from %s on "
                             "socket %d\n",
                             inet_ntop(remoteaddr.ss_family,
                                 get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN),
                             newfd);
+                            */
                     }
                 } else {
                     // handle data from a client
@@ -145,25 +148,31 @@ int Server::serve(std::string port,
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            printf("selectserver: socket %d hung up, no bytes\n", i);
+                            //printf("selectserver: socket %d hung up, no bytes\n", i);
                         } else {
                             perror("recv");
                         }
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        printf("Node %d Received msg from client\n", 0); // use NodeID
+                        //printf("Node %d Received msg from client\n", 0); // use NodeID
 
-                        std::cout << "msg received: " << buf.data() << "size " << sizeof buf.data() <<  "\n";
+                        //std::cout << "msg received: " << buf.data() << "size " << sizeof buf.data() <<  "\n";
                         
                         // TODO fix the freaking hard code
                         msgpack::object_handle oh = msgpack::unpack(buf.data(), 100);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
+
+                        /*
                         for (auto& i : rvec) {
                           std::cout << i << std::endl;
                         }
+                        */
+
+                        std::lock_guard<std::mutex> lck(recv_mtx);
+                        recv_q.emplace(rvec);
 
 
                         // we got some data from a client
@@ -178,6 +187,9 @@ int Server::serve(std::string port,
                                 }
                             }
                         }
+
+
+
                     }
                 } // END handle data from client
             } // END got new incoming connection
