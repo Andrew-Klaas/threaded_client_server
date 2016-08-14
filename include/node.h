@@ -21,7 +21,7 @@
 #include "server.h"
 #include "types.h"
 
-#define MAXDATASIZE 4096
+//#define MAXDATASIZE 4096
 
 class Node {
 public:

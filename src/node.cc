@@ -52,7 +52,6 @@ void Node::msg_handler(std::vector<std::string> args){
   std::lock_guard<std::mutex> lck(pending_mtx); 
   int result = stoi(args[2]);
   //printf("result is %d\n", result);
-
    switch(result) {
      case 0:
        //printf("0\n");
@@ -68,7 +67,7 @@ void Node::msg_handler(std::vector<std::string> args){
      case 2:
        //printf("2\n");
        pending_ops_q.emplace([=](){
-       printPeerID(args[3]);
+       printPeerID(args[4]);
      });
        //cv.notify_all();
        break;
@@ -94,7 +93,7 @@ void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
   // fix this
   rpc_msg rpc;
   auto length_s = std::to_string(length);
-  std::vector<std::string> args = { length_s };
+  std::vector<std::string> args = { length_s, "" };
   packRpcSendReq(rpc, "1", ip, port, args);
   pending_send_q.emplace(std::move(rpc));
 
@@ -105,7 +104,7 @@ void Node::sendReplyPeerID(std::string ip, std::string port, std::size_t length)
   rpc_msg rpc;
   //printf("length is %lu\n", length);
   auto result = random_string(length);
-  std::vector<std::string> args = { result };
+  std::vector<std::string> args = { std::to_string(result.length()), result };
   //std::cout << "result is: " << result << std::endl;
   packRpcSendReq(rpc, "2", ip, port, args);
   //pending_send_q.emplace(std::move(rpc));
@@ -132,8 +131,19 @@ void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::str
   rpc.vec.push_back(rpc.ip);    
   rpc.vec.push_back(rpc.port);    
   rpc.vec.push_back(fn); //ping    
-  rpc.vec.push_back(args[0]);  // No data
+  /*
+  for ( auto& i : args) {
+    rpc.vec.push_back(args[i]);
+    //printf("Node %d, vec size %lu\n", nodeID, rpc.vec[4].size())  ;
+  }
+  */
+  rpc.vec.push_back(args[0]);  // length or hash function
+  rpc.vec.push_back(args[1]);  // data
+  printf("Node %d, vec size %lu\n", nodeID, rpc.vec[4].size())  ;
+
+  //rpc.vec[0] = sizeof rpc.vec;
   msgpack::pack(rpc.buffer, rpc.vec);
+  //printf("here\n");
 }
 
 /*

@@ -52,6 +52,8 @@ int Client::serve(std::string ip, std::string port,
         auto ip = std::move(rpc.ip);
         auto port = std::move(rpc.port);
         auto buffer = std::move(rpc.buffer);
+        int len;
+        len = buffer.size();
         
         if ((rv = getaddrinfo(ip.c_str() ,port.c_str(), &hints, &servinfo)) != 0) {
             fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -85,21 +87,9 @@ int Client::serve(std::string ip, std::string port,
         
         freeaddrinfo(servinfo); // all done with this structure
 
-        /*
-  std::vector<std::string> vec;
-  vec.push_back("0");
-  vec.push_back("K");
-  vec.push_back("cat");
-  vec.push_back("V");
-  vec.push_back("7");
-  msgpack::sbuffer buffer;
-  msgpack::pack(buffer, vec);
-  //std::cout << buffer.data() <<  " " << sizeof buffer.data() << std::endl;
-  //printf("Socket %d \n",sockfd);
-  */
-    
-        if (send(sockfd, (char*)buffer.data(), buffer.size(), 0) == -1) {
-               perror("send");
+        if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
+               perror("sendall");
+               printf("We only sent %d bytes because of the error!\n", len); 
         }
         close(sockfd);
 
@@ -109,4 +99,20 @@ int Client::serve(std::string ip, std::string port,
     return 0;
 }
 
+int Client::sendall( int s, char *buf, int *len){
+  int n = 0, total = 0;
+  
+  int bytesleft = *len;
+
+  while(total < *len) {
+    n = send(s, buf+total, bytesleft, 0 );
+    if (n == -1) {break;}
+    total += n;
+    bytesleft -= n;
+  }
+
+  *len = total;
+
+  return n == -1 ? -1 : 0;
+}
 

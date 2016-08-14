@@ -17,15 +17,10 @@ int main(int argc, char* argv[]){
   std::size_t length2 = 1;
 
   node2.ReqPeerID("127.0.0.1","3490", 50 );
-
-
-
-  /*
   sleep(1);
   node2.ReqPeerID("127.0.0.1","3490", 25 );
   sleep(1);
   node1.ReqPeerID("127.0.0.1","3491", 80 );
-  */
 
   //node2.ReqPeerID("127.0.0.1","3490", length );
   //node2.ReqPeerID("127.0.0.1","3490", length );

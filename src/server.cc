@@ -144,7 +144,7 @@ int Server::serve(std::string port,
                 } else {
                     // handle data from a client
                     // fix 4096
-                    if ((nbytes = recv(i, (char*)buf.data(), 100, 0)) <= 0) {
+                    if ((nbytes = recv(i, (char*)buf.data(),MAXDATASIZE , 0)) <= 0) {
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
@@ -155,12 +155,16 @@ int Server::serve(std::string port,
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        //printf("Node %d Received msg from client\n", 0); // use NodeID
+                        /*
+                        printf("NodeID %d, buf.size(): %d\n", nodeID,
+                            buf.size());
+                        */
 
-                        //std::cout << "msg received: " << buf.data() << "size " << sizeof buf.data() <<  "\n";
-                        
-                        // TODO fix the freaking hard code
-                        msgpack::object_handle oh = msgpack::unpack(buf.data(), 100);
+
+
+
+                        msgpack::object_handle oh = msgpack::unpack(buf.data(),
+                            MAXDATASIZE);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
@@ -176,6 +180,7 @@ int Server::serve(std::string port,
 
 
                         // we got some data from a client
+                        /*
                         for(j = 0; j <= fdmax; j++) {
                             // send to everyone!
                             if (FD_ISSET(j, &master)) {
@@ -187,8 +192,7 @@ int Server::serve(std::string port,
                                 }
                             }
                         }
-
-
+                        */
 
                     }
                 } // END handle data from client

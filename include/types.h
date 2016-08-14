@@ -5,6 +5,9 @@
 #include <vector>
 
 struct rpc_msg { 
+    
+    std::size_t rpc_msg_length;
+
     std::string ip;
     std::string port;
     // change this to something else, not a string
@@ -21,6 +24,8 @@ struct rpc_msg {
     //std::vector<unsigned char> blob
     std::vector<std::string> vec;
     msgpack::sbuffer buffer;
+
+
   
 };
 
