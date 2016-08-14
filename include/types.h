@@ -7,9 +7,14 @@
 struct rpc_msg { 
     
     std::size_t rpc_msg_length;
+    unsigned char msg_length;
+    
 
     std::string ip;
     std::string port;
+    std::string return_ip;
+    std::string return_port; 
+
     // change this to something else, not a string
     std::string fn;
 

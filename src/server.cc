@@ -47,6 +47,7 @@ int Server::serve(std::string port,
     //char buf[256];    // buffer for client data
     msgpack::sbuffer buf;
     int nbytes;
+    size_t recv_len = 0;
 
     char remoteIP[INET6_ADDRSTRLEN];
 
@@ -107,6 +108,7 @@ int Server::serve(std::string port,
 
     // main loop
 
+    char buffer[1];
     //printf("server: waiting for connections\n");
     for(;;) {
         read_fds = master; // copy it
@@ -144,7 +146,8 @@ int Server::serve(std::string port,
                 } else {
                     // handle data from a client
                     // fix 4096
-                    if ((nbytes = recv(i, (char*)buf.data(),MAXDATASIZE , 0)) <= 0) {
+                    if ((nbytes = recv(i, buffer,
+                            4, 0)) <= 0) {
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
@@ -155,44 +158,39 @@ int Server::serve(std::string port,
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        /*
-                        printf("NodeID %d, buf.size(): %d\n", nodeID,
-                            buf.size());
-                        */
 
 
+                        unsigned long bytes_left = 0;
 
+                        for ( int i = 3; i >= 0 ; i--){
+                          //printf("%x, \n", buffer[i]);
+                          bytes_left = bytes_left |  ((buffer[i] & 0xFF)<<8*i);
+
+                        }
+
+                        //std::cout << "bytes_left: " << bytes_left << "\n";
+
+                        if (bytes_left > 0) {
+                           nbytes = recv(i, (char*)buf.data(),
+                               bytes_left, 0);
+                        }
 
                         msgpack::object_handle oh = msgpack::unpack(buf.data(),
-                            MAXDATASIZE);
+                            bytes_left);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
 
+                        
                         /*
                         for (auto& i : rvec) {
                           std::cout << i << std::endl;
                         }
                         */
+                        
 
                         std::lock_guard<std::mutex> lck(recv_mtx);
                         recv_q.emplace(rvec);
-
-
-                        // we got some data from a client
-                        /*
-                        for(j = 0; j <= fdmax; j++) {
-                            // send to everyone!
-                            if (FD_ISSET(j, &master)) {
-                                // except the listener and ourselves
-                                if (j != listener && j != i) {
-                                    //if (sendMsg(j, buf, nbytes, 0) == -1) {
-                                    //    perror("send");
-                                    //}
-                                }
-                            }
-                        }
-                        */
 
                     }
                 } // END handle data from client

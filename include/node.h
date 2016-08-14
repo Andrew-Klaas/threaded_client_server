@@ -25,6 +25,8 @@
 
 class Node {
 public:
+  std::string ip;
+  std::string port;
   bool debug;
   int nodeID;
   Node(int);

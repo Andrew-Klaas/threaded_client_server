@@ -52,7 +52,7 @@ int Client::serve(std::string ip, std::string port,
         auto ip = std::move(rpc.ip);
         auto port = std::move(rpc.port);
         auto buffer = std::move(rpc.buffer);
-        int len;
+        std::size_t len;
         len = buffer.size();
         
         if ((rv = getaddrinfo(ip.c_str() ,port.c_str(), &hints, &servinfo)) != 0) {
@@ -87,9 +87,25 @@ int Client::serve(std::string ip, std::string port,
         
         freeaddrinfo(servinfo); // all done with this structure
 
+
+        printf("rpc.buffer.size %zu \n",buffer.size());
+        //char * out_buf = (char*)buffer.size() + buffer.data(); 
+        //auto out_buf = std::to_string(buffer.size()) + to_string(buffer.data());
+        //std::cout << decltype(buffer.data()) << "\n";
+
+
+        /*
+        char buf[1];
+        buf[0] = (char)buffer.size();
+        std::cout << buf[0] << std::endl;
+        send(s, buf,1,0);
+        */
+
+
+        //sendall(sockfd, (char*)buffer.size(), 1)
         if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
                perror("sendall");
-               printf("We only sent %d bytes because of the error!\n", len); 
+               //printf("We only sent %d bytes because of the error!\n", len); 
         }
         close(sockfd);
 
@@ -99,10 +115,22 @@ int Client::serve(std::string ip, std::string port,
     return 0;
 }
 
-int Client::sendall( int s, char *buf, int *len){
-  int n = 0, total = 0;
+int Client::sendall( int s, char *buf, unsigned long *len){
+  unsigned long n = 0, total = 0;
   
-  int bytesleft = *len;
+  auto bytesleft = *len;
+ 
+  unsigned char * p = (unsigned char*)&(*len);
+
+  /*
+  printf("\n");
+  for (int i = 0; i < 4; i++){
+    printf( "%x, i: %d\n", p[i], i);
+  }
+  printf("\n");
+  */
+  
+  auto first = send(s, p,4,0);
 
   while(total < *len) {
     n = send(s, buf+total, bytesleft, 0 );
@@ -114,5 +142,6 @@ int Client::sendall( int s, char *buf, int *len){
   *len = total;
 
   return n == -1 ? -1 : 0;
+  return 0;
 }
 

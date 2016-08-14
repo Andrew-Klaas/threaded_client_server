@@ -28,7 +28,7 @@ public:
 	int serve(std::string ip, std::string port, 
       std::queue<rpc_msg>& pending_send_q, 
       std::mutex& send_mtx);
-  int sendall( int s, char *buf, int *len);
+  int sendall( int s, char *buf, unsigned long *len);
   bool Running;
 
 };
