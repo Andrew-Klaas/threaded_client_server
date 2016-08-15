@@ -15,9 +15,10 @@ int main(int argc, char* argv[]){
 
   auto test = "0123456789";
 
-  auto test_large = test_random_string(1024); 
+  auto test_large = test_random_string(100); 
+  std::cout << test_large << std::endl;
   node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-  //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
+  node1.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);

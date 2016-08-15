@@ -78,14 +78,14 @@ void Node::msg_handler(std::vector<std::string> args){
 }
 void Node::hash_handler(std::vector<std::string> args){
   if (args[3] == "SHA1") {
-    unsigned char hash_ptr[args[5].size()];
+    unsigned char hash_ptr[20];
     calcSHA1(args, hash_ptr);
      
     rpc_msg rpc;
     auto ip = args[0];
     auto port = args[1];
     std::string result((char*)hash_ptr);
-    std::vector<std::string> args_new = { "", std::to_string(sizeof(hash_ptr)),
+    std::vector<std::string> args_new = { "", "20",
       result};
     packRpcSendReq(rpc, "4", ip, port, args_new);
     pending_send_q.emplace(std::move(rpc));
