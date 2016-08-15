@@ -94,7 +94,7 @@ int Client::serve(std::string ip, std::string port,
                perror("sendall");
         }
         close(sockfd);
-
+        printf("done sending\n");
       } // if statement
     } // while loop
 
@@ -108,20 +108,24 @@ int Client::sendall( int s, char *buf, unsigned long *len){
  
   unsigned char * p = (unsigned char*)&(*len);
 
+  /*
   printf("\n");
   for (int i = 0; i < 4; i++){
     printf( "%x, i: %d\n", p[i], i);
   }
   printf("\n");
+  */
   
+  printf("NODE %d, sending first, bytes: %lu \n",nodeID,*len);
+
   auto first = send(s, p,4,0);
 
   while(total < *len) {
-    printf("sending\n");
     n = send(s, buf+total, bytesleft, 0 );
     if (n == -1) {break;}
     total += n;
     bytesleft -= n;
+    printf("Node %d, bytes left to send: %lu \n",nodeID, bytesleft);
   }
 
   *len = total;

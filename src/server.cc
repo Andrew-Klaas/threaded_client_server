@@ -169,25 +169,24 @@ int Server::serve(std::string port,
 
                         }
 
-                        std::cout << "bytes_left: " << bytes_left << "\n";
+                        std::cout << "Node " << nodeID <<  " bytes_left: " << bytes_left << "\n";
 
                         if (bytes_left > 0) {
+                           printf("Node %d, recv'ing data\n", nodeID);
                            nbytes = recv(i, (char*)buf.data(),
                                bytes_left, 0);
+                           printf("Node %d, done recv'ing data\n", nodeID);
+
+                        }
+                        if (bytes_left - bytes_left > 0) {
+                          printf("ERROR, not all bytes received\n");
                         }
 
-                        printf("before unpack\n");
-                        std::string s;
-                        std::cout << "max string size is " << s.max_size() <<
-                          "\n";
                         msgpack::object_handle oh = msgpack::unpack(buf.data(),
                             bytes_left);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
-                        printf("after unpack\n");
-
-
                         
                         /*
                         printf("recived args begin: \n");

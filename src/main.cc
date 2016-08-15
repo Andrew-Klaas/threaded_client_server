@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
   
 
 
-  auto test_large = test_random_string(40000); 
+  auto test_large = test_random_string(50000); 
   //std::cout << test_large << std::endl;
   node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
   //node1.ReqHash("127.0.0.1","3490", "SHA256", test);

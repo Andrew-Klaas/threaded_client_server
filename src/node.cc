@@ -50,34 +50,40 @@ void Node::msg_handler(std::vector<std::string> args){
   int result = stoi(args[2]);
    switch(result) {
      case 0:
+       printf("msg 0\n");
        break;
      case 1:
-       //pending_ops_q.emplace([=](){
+       printf("msg 1\n");
+       pending_ops_q.emplace([=](){
          sendReplyPeerID(args[0],args[1],stoi(args[3]));
-       //});
+       });
        //cv.notify_all();
        break;
      case 2:
-       //pending_ops_q.emplace([=](){
+       printf("msg 2\n");
+       pending_ops_q.emplace([=](){
         printPeerID(args[5]);
-       //});
+       });
        //cv.notify_all();
        break;
      case 3:
-       //pending_ops_q.emplace([=](){
+       printf("msg 4\n");
+       pending_ops_q.emplace([=](){
          hash_handler(args);
-       //});
+       });
        break;
      case 4:
-       //pending_ops_q.emplace([=](){
+       printf("msg 5\n");
+       pending_ops_q.emplace([=](){
         printHash(args[4], args[5]);
-       //});
+       });
      default: break;
    }
 
 }
 void Node::hash_handler(std::vector<std::string> args){
   if (args[3] == "SHA1") {
+    printf("\nSHA1\n");
     unsigned char hash_ptr[20];
     calcSHA1(args, hash_ptr);
      
@@ -223,7 +229,7 @@ void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
     const char* data){
   rpc_msg rpc;
   std::string data_s(data);
-  std::vector<std::string> args = { hash_fn, "0", data_s };
+  std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };
   packRpcSendReq(rpc, "3", ip, port, args);
   pending_send_q.emplace(std::move(rpc));
 
