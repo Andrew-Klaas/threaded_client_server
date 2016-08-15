@@ -15,15 +15,16 @@ int main(int argc, char* argv[]){
 
   auto test = "0123456789";
 
-  auto test_large = test_random_string(100); 
-  std::cout << test_large << std::endl;
-  //node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-  node1.ReqHash("127.0.0.1","3490", "SHA256", test);
+  
+
+
+  auto test_large = test_random_string(40000); 
+  //std::cout << test_large << std::endl;
+  node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+  //node1.ReqHash("127.0.0.1","3490", "SHA256", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
-
-  
 
   /*
   node2.ReqPeerID("127.0.0.1","3490", 1024 );
@@ -36,8 +37,8 @@ int main(int argc, char* argv[]){
   //node2.ReqPeerID("127.0.0.1","3490", length );
   //node2.ReqPeerID("127.0.0.1","3490", length );
 
-
-  while(1){}
+  sleep(1);
+  //printf("\n%lu\n", sizeof(unsigned long));
 
   node1.join();
   node2.join();
@@ -97,5 +98,7 @@ std::string test_random_string( std::size_t length ) {
   Send out the RPC, then wait for reply in receive queue
 
   valgrind
+
+  memory copying, pass by more refs instead?
     
 */

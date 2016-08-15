@@ -159,7 +159,7 @@ int Server::serve(std::string port,
                         FD_CLR(i, &master); // remove from master set
                     } else {
 
-                        //printf("Node %d, receiving data\n", nodeID);  
+                        printf("Node %d, receiving data\n", nodeID);  
 
                         unsigned long bytes_left = 0;
 
@@ -169,18 +169,24 @@ int Server::serve(std::string port,
 
                         }
 
-                        //std::cout << "bytes_left: " << bytes_left << "\n";
+                        std::cout << "bytes_left: " << bytes_left << "\n";
 
                         if (bytes_left > 0) {
                            nbytes = recv(i, (char*)buf.data(),
                                bytes_left, 0);
                         }
 
+                        printf("before unpack\n");
+                        std::string s;
+                        std::cout << "max string size is " << s.max_size() <<
+                          "\n";
                         msgpack::object_handle oh = msgpack::unpack(buf.data(),
                             bytes_left);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
+                        printf("after unpack\n");
+
 
                         
                         /*

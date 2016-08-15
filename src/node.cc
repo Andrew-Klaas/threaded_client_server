@@ -52,26 +52,26 @@ void Node::msg_handler(std::vector<std::string> args){
      case 0:
        break;
      case 1:
-       pending_ops_q.emplace([=](){
+       //pending_ops_q.emplace([=](){
          sendReplyPeerID(args[0],args[1],stoi(args[3]));
-       });
+       //});
        //cv.notify_all();
        break;
      case 2:
-       pending_ops_q.emplace([=](){
+       //pending_ops_q.emplace([=](){
         printPeerID(args[5]);
-       });
+       //});
        //cv.notify_all();
        break;
      case 3:
-       pending_ops_q.emplace([=](){
+       //pending_ops_q.emplace([=](){
          hash_handler(args);
-       });
+       //});
        break;
      case 4:
-       pending_ops_q.emplace([=](){
+       //pending_ops_q.emplace([=](){
         printHash(args[4], args[5]);
-       });
+       //});
      default: break;
    }
 
