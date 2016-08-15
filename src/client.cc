@@ -89,23 +89,9 @@ int Client::serve(std::string ip, std::string port,
 
 
         //printf("rpc.buffer.size %zu \n",buffer.size());
-        //char * out_buf = (char*)buffer.size() + buffer.data(); 
-        //auto out_buf = std::to_string(buffer.size()) + to_string(buffer.data());
-        //std::cout << decltype(buffer.data()) << "\n";
 
-
-        /*
-        char buf[1];
-        buf[0] = (char)buffer.size();
-        std::cout << buf[0] << std::endl;
-        send(s, buf,1,0);
-        */
-
-        //printf("Node %d, sending data\n", nodeID);
-        //sendall(sockfd, (char*)buffer.size(), 1)
         if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
                perror("sendall");
-               //printf("We only sent %d bytes because of the error!\n", len); 
         }
         close(sockfd);
 

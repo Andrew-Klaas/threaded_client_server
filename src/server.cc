@@ -184,9 +184,11 @@ int Server::serve(std::string port,
 
                         
                         /*
+                        printf("recived args begin: \n");
                         for (auto& i : rvec) {
                           std::cout << i << std::endl;
                         }
+                        printf("received args end:\n");
                         */
                         
 

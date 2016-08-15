@@ -3,9 +3,10 @@
 Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
 
 void Node::start(std::string ip, std::string port) {
+   //unsigned int nthreads = std::thread::hardware_concurrency();
+
   this->ip = ip;
   this->port = port;
-  //unsigned int nthreads = std::thread::hardware_concurrency();
   Running = true;
 	
   // start server thread
@@ -26,7 +27,7 @@ void Node::start(std::string ip, std::string port) {
         pending_ops = std::move(pending_ops_q);
       }
       while (!pending_ops.empty()) {
-        pending_ops.front()(); //whats going on here
+        pending_ops.front()(); 
         pending_ops.pop();
       }
 
@@ -63,15 +64,14 @@ void Node::msg_handler(std::vector<std::string> args){
        //cv.notify_all();
        break;
      case 3:
-       printf("Reciving hash request\n");
        pending_ops_q.emplace([=](){
          hash_handler(args);
        });
        break;
      case 4:
-       //printf("Node %d, Reciving hash response\n",nodeID );
-       //std::cout << "size: " << args[4] << "\n";
-       printHash(args[4], args[5]);
+       pending_ops_q.emplace([=](){
+        printHash(args[4], args[5]);
+       });
      default: break;
    }
 
@@ -80,16 +80,11 @@ void Node::hash_handler(std::vector<std::string> args){
   if (args[3] == "SHA1") {
     unsigned char hash_ptr[args[5].size()];
     calcSHA1(args, hash_ptr);
-      
-    for(auto i = 0 ; i  < sizeof(hash_ptr); i++) {
-      printf("%x",hash_ptr[i]);
-    }
-    printf("\n");
+     
     rpc_msg rpc;
     auto ip = args[0];
     auto port = args[1];
     std::string result((char*)hash_ptr);
-    printf("size of hash_ptr in bytes, %lu\n", sizeof(hash_ptr));
     std::vector<std::string> args_new = { "", std::to_string(sizeof(hash_ptr)),
       result};
     packRpcSendReq(rpc, "4", ip, port, args_new);
@@ -115,15 +110,11 @@ void Node::hash_handler(std::vector<std::string> args){
 
 void Node::calcSHA1(std::vector<std::string>& args, unsigned char*
     hash_ptr) {
-  std::cout << args[5] << std::endl; 
-  //unsigned char hash_ptr[args[5].size()]; // == 20
-  printf("size of data: %lu \n", args[5].size());
-  
   auto data_ptr = args[5].c_str();
   
   //auto hash_ptr = std::make_unique<unsigned char[]>(sizeof(args[5]));
 
-  SHA1((unsigned char*)data_ptr, sizeof(args[5]), hash_ptr);
+  SHA1((unsigned char*)data_ptr, args[5].size(), hash_ptr);
 }
 
 void Node::printPeerID(std::string result) {
@@ -140,7 +131,6 @@ std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length
 }
 
 void Node::printHash(std::string length, std::string result) {
-  printf("length %d\n", stoi(length));
   auto char_result = result.c_str();
   printf("Node %d, recived hash result: ",nodeID);
   for(auto i = 0 ; i  < stoi(length); i++) {
@@ -162,7 +152,6 @@ void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
 }
 
 void Node::sendReplyPeerID(std::string ip, std::string port, std::size_t length){
-  printf("Node %d, sending reply\n",nodeID);
   rpc_msg rpc;
   auto result = random_string(length);
   std::vector<std::string> args = { "", std::to_string(result.length()), result };
@@ -195,7 +184,12 @@ void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::str
   rpc.vec.push_back(args[0]);  // length or hash function
   rpc.vec.push_back(args[1]);  // size
   rpc.vec.push_back(args[2]);  // data
-  msgpack::pack(rpc.buffer, rpc.vec);
+  /*
+ for (auto& i : rpc.vec) {
+   std::cout << i << std::endl;
+ }
+ */
+ msgpack::pack(rpc.buffer, rpc.vec);
 
 }
 
