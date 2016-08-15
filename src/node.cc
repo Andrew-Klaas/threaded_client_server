@@ -63,7 +63,7 @@ void Node::msg_handler(std::vector<std::string> args){
        //cv.notify_all();
        break;
      case 3:
-       printf("Reciving hash request");
+       printf("Reciving hash request\n");
        pending_ops_q.emplace([=](){
          hash_handler(args);
        });
@@ -87,8 +87,9 @@ void Node::hash_handler(std::vector<std::string> args){
 }
 
 void Node::calcSHA1(std::vector<std::string>& args) {
-  
-  unsigned char hash_ptr[stoi(args[5])]; // == 20
+  std::cout << args[5] << std::endl; 
+  unsigned char hash_ptr[sizeof(args[5])]; // == 20
+  printf("size of data: %lu \n", sizeof(args[5]));
   
   auto data_ptr = args[5].c_str();
   
@@ -96,7 +97,11 @@ void Node::calcSHA1(std::vector<std::string>& args) {
 
   SHA1((unsigned char*)data_ptr, sizeof(args[5]), hash_ptr);
 
-  //std::cout << hash << std::endl;
+  for(auto i = 0 ; i  < sizeof(hash_ptr); i++) {
+    printf("%x",hash_ptr[i]);
+  }
+  printf("\n");
+
 }
 
 
@@ -168,7 +173,7 @@ void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::str
 
 }
 
-void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, char* data){
+void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const char* data){
   std::lock_guard<std::mutex> lck(pending_mtx); 
   pending_ops_q.emplace([=](){
       sendReqHash(ip, port, hash_fn, data);
@@ -176,10 +181,11 @@ void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, char* 
   //cv.notify_all();
 }
 
-void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn, char* data){
-
+void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
+    const char* data){
   rpc_msg rpc;
-  std::vector<std::string> args = { hash_fn, "0", "" };
+  std::string data_s(data);
+  std::vector<std::string> args = { hash_fn, "0", data_s };
   packRpcSendReq(rpc, "3", ip, port, args);
   pending_send_q.emplace(std::move(rpc));
 

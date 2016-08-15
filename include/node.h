@@ -49,8 +49,8 @@ public:
   
   void msg_handler(std::vector<std::string> args);
 
-  void ReqHash(std::string ip, std::string port, std::string hash_fn, char* data);
-  void sendReqHash(std::string ip, std::string port, std::string hash_fn, char*
+  void ReqHash(std::string ip, std::string port, std::string hash_fn, const char* data);
+  void sendReqHash(std::string ip, std::string port, std::string hash_fn, const char*
       data);
 
   void hash_handler(std::vector<std::string> args);

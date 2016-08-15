@@ -10,6 +10,9 @@ include_directories(include)
 include_directories(/usr/include)
 include_directories(/usr/local/include)
 include_directories(/usr/local/lib)
+include_directories(/usr/local/opt/openssl/include)
+include_directories(/usr/local/opt/openssl/lib)
+
 #include_directories(/usr/local/Cellar/msgpack/1.4.2/include)
  
 #Can manually add the sources using the set command as follows:
@@ -22,4 +25,6 @@ add_executable(testNPC ${SOURCES})
 
 TARGET_LINK_LIBRARIES( testNPC
     pthread
+    ssl
+    crypto
 )

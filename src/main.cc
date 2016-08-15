@@ -12,8 +12,8 @@ int main(int argc, char* argv[]){
 
   sleep(1);
 
-
-  //node2.ReqHash("127.0.0.1","3940", "SHA1", "0123456789");
+  auto test = "0123456789k;laskefj;lwkejfwl;ekf";
+  node2.ReqHash("127.0.0.1","3490", "SHA1", test);
 
   /*
   node2.ReqPeerID("127.0.0.1","3490", 1024 );

@@ -159,6 +159,7 @@ int Server::serve(std::string port,
                         FD_CLR(i, &master); // remove from master set
                     } else {
 
+                        printf("Node %d, receiving data\n", nodeID);  
 
                         unsigned long bytes_left = 0;
 
@@ -182,11 +183,9 @@ int Server::serve(std::string port,
                         obj.convert(rvec);
 
                         
-                        /*
                         for (auto& i : rvec) {
                           std::cout << i << std::endl;
                         }
-                        */
                         
 
                         std::lock_guard<std::mutex> lck(recv_mtx);

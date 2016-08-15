@@ -101,7 +101,7 @@ int Client::serve(std::string ip, std::string port,
         send(s, buf,1,0);
         */
 
-
+        printf("Node %d, sending data\n", nodeID);
         //sendall(sockfd, (char*)buffer.size(), 1)
         if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
                perror("sendall");
