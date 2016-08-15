@@ -16,6 +16,9 @@
 #include <functional> //for std::function
 #include <algorithm>  //for std::generate_n
 #include <string>
+#include <openssl/sha.h>
+#include <limits>
+#include <random>
 
 #include "client.h"
 #include "server.h"
@@ -32,27 +35,37 @@ public:
   Node(int);
 
 	void start(std::string ip, std::string port);
-  //unsigned char *
-  std::string ReqPeerID(std::string ip, std::string port, std::size_t length);
-  //unsigned char *
-  //unsigned char *ReqHash(std::string ip, std::string port, std::string fn, const unsigned char & data);
-  void sendReqPeerID(std::string ip, std::string port, std::size_t length);
-  std::string random_string( std::size_t length );
-  //void prepareSockRpcSend(rpc_msg& rpc, std::string ip, std::string port);
+  void join();
+
   void packRpcSendReq(rpc_msg& rpc, std::string fn, 
       std::string ip, std::string port, 
       std::vector<std::string>& args);
-  void join();
-  void msg_handler(std::vector<std::string> args);
+  
+  std::string ReqPeerID(std::string ip, std::string port, std::size_t length);
+      std::string random_string( std::size_t length );
+  void sendReqPeerID(std::string ip, std::string port, std::size_t length);
   void sendReplyPeerID(std::string ip, std::string port, std::size_t length);
   void printPeerID(std::string result);
+  
+  void msg_handler(std::vector<std::string> args);
 
+  void ReqHash(std::string ip, std::string port, std::string hash_fn, char* data);
+  void sendReqHash(std::string ip, std::string port, std::string hash_fn, char*
+      data);
+
+  void hash_handler(std::vector<std::string> args);
+  void calcSHA1(std::vector<std::string>& args);
+
+  //void sendReplyPeerID(std::string ip, std::string port, std::size_t length);
+
+
+
+  
 
   std::mutex recv_mtx {};
   std::mutex send_mtx {};
 
 private:
-	
 	Server n_server;
 	Client n_client;
 
@@ -64,15 +77,7 @@ private:
   std::thread run_thread {};
 	std::mutex pending_mtx {};
   bool Running;
-  /*
-     Blob
-     std::vector<unsigned char>
-  */
-
 };
-
-//Node::Node(int NodeID) : NodeID(NodeID) {}
-
 
 #endif 
 

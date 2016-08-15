@@ -45,41 +45,63 @@ void Node::start(std::string ip, std::string port) {
 }
 
 void Node::msg_handler(std::vector<std::string> args){
-
-  /*
-  for (auto& i : args) {
-    std::cout << i << std::endl;
-  }
-  */
   std::lock_guard<std::mutex> lck(pending_mtx); 
   int result = stoi(args[2]);
-  //printf("result is %d\n", result);
    switch(result) {
      case 0:
-       //printf("0\n");
-       //printf("handler function case 0\n");
        break;
      case 1:
-       //printf("1\n");
-       //printf("Node %d, replying for PEERID\n", nodeID);
        pending_ops_q.emplace([=](){
-           sendReplyPeerID(args[0],args[1],stoi(args[3]));
+         sendReplyPeerID(args[0],args[1],stoi(args[3]));
        });
        //cv.notify_all();
        break;
      case 2:
-       //printf("2\n");
-        printf("Node %d, print peer ID\n", nodeID); 
        pending_ops_q.emplace([=](){
-       printPeerID(args[5]);
-     });
+        printPeerID(args[5]);
+       });
        //cv.notify_all();
+       break;
+     case 3:
+       printf("Reciving hash request");
+       pending_ops_q.emplace([=](){
+         hash_handler(args);
+       });
        break;
      default: break;
    }
-   //printf("undefined function\n");
 
 }
+void Node::hash_handler(std::vector<std::string> args){
+  if (args[3] == "SHA1") {
+    calcSHA1(args);
+
+  } 
+  else if (args[3] == "SHA256") {
+
+
+  }
+  else {
+    printf("undefined hash function\n");
+  }
+}
+
+void Node::calcSHA1(std::vector<std::string>& args) {
+  
+  unsigned char hash_ptr[stoi(args[5])]; // == 20
+  
+  auto data_ptr = args[5].c_str();
+  
+  //auto hash_ptr = std::make_unique<unsigned char[]>(sizeof(args[5]));
+
+  SHA1((unsigned char*)data_ptr, sizeof(args[5]), hash_ptr);
+
+  //std::cout << hash << std::endl;
+}
+
+
+
+
 void Node::printPeerID(std::string result) {
   std::cout<< "Node: " << nodeID << " PEERID RESULT: " << result << "\n";  
 }
@@ -131,37 +153,38 @@ std::string Node::random_string( std::size_t length ) {
     std::generate_n(str.begin(), length, randchar );
     return str;
 }
+
+
 void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port, std::vector<std::string>& args){ 
   rpc.ip = ip;
   rpc.port = port;
   rpc.vec.push_back(this->ip);    
   rpc.vec.push_back(this->port);    
-  rpc.vec.push_back(fn); //ping    
-  /*
-  for ( auto& i : args) {
-    rpc.vec.push_back(args[i]);
-    //printf("Node %d, vec size %lu\n", nodeID, rpc.vec[4].size())  ;
-  }
-  */
+  rpc.vec.push_back(fn); 
   rpc.vec.push_back(args[0]);  // length or hash function
   rpc.vec.push_back(args[1]);  // size
   rpc.vec.push_back(args[2]);  // data
-  //rpc.vec.push_back("hi how are you, i am good");
-
-  //rpc.vec[0] = sizeof rpc.vec;
   msgpack::pack(rpc.buffer, rpc.vec);
 
 }
 
-/*
-unsigned char *ReqHash(std::string ip, std::string port, string fn, const unsigned char & data){
-  //std::lock_guard<std::mutex> lck(storage_mtx); 
-  pending_ops_q.emplace([=](Worker& worker){
-      worker.sendReqHash(ip, port, fn,data);
+void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, char* data){
+  std::lock_guard<std::mutex> lck(pending_mtx); 
+  pending_ops_q.emplace([=](){
+      sendReqHash(ip, port, hash_fn, data);
   });
   //cv.notify_all();
 }
-*/
+
+void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn, char* data){
+
+  rpc_msg rpc;
+  std::vector<std::string> args = { hash_fn, "0", "" };
+  packRpcSendReq(rpc, "3", ip, port, args);
+  pending_send_q.emplace(std::move(rpc));
+
+}
+
 
 void Node::join() {
   run_thread.join();

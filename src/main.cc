@@ -12,12 +12,15 @@ int main(int argc, char* argv[]){
 
   sleep(1);
 
-  node2.ReqPeerID("127.0.0.1","3490", 1024 );
+
+  //node2.ReqHash("127.0.0.1","3940", "SHA1", "0123456789");
+
   /*
+  node2.ReqPeerID("127.0.0.1","3490", 1024 );
   sleep(1);
   node2.ReqPeerID("127.0.0.1","3490", 25 );
   sleep(1);
-  node1.ReqPeerID("127.0.0.1","3491", 80 );
+  node1.ReqPeerID("127.0.0.1","3491", 5 );
   */
 
   //node2.ReqPeerID("127.0.0.1","3490", length );
@@ -65,5 +68,7 @@ int main(int argc, char* argv[]){
 // then server pulls off queue and does a send
   
   Send out the RPC, then wait for reply in receive queue
+
+  valgrind
     
 */
