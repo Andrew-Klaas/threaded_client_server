@@ -91,8 +91,17 @@ void Node::hash_handler(std::vector<std::string> args){
     pending_send_q.emplace(std::move(rpc));
   } 
   else if (args[3] == "SHA256") {
-    //TODO
-    printf("TODO,  sha256\n");
+    unsigned char hash_ptr[32];
+    calcSHA256(args, hash_ptr);
+    rpc_msg rpc;
+    auto ip = args[0];
+    auto port = args[1];
+    std::string result((char*)hash_ptr);
+    std::vector<std::string> args_new = { "", "32",
+      result};
+    packRpcSendReq(rpc, "4", ip, port, args_new);
+    pending_send_q.emplace(std::move(rpc));
+
   }
   else {
     printf("undefined hash function\n");
@@ -115,6 +124,15 @@ void Node::calcSHA1(std::vector<std::string>& args, unsigned char*
   //auto hash_ptr = std::make_unique<unsigned char[]>(sizeof(args[5]));
 
   SHA1((unsigned char*)data_ptr, args[5].size(), hash_ptr);
+}
+
+void Node::calcSHA256(std::vector<std::string>& args, unsigned char*
+    hash_ptr) {
+  auto data_ptr = args[5].c_str();
+  
+  //auto hash_ptr = std::make_unique<unsigned char[]>(sizeof(args[5]));
+
+  SHA256((unsigned char*)data_ptr, args[5].size(), hash_ptr);
 }
 
 void Node::printPeerID(std::string result) {

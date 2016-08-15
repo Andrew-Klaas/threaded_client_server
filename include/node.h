@@ -56,7 +56,7 @@ public:
   void hash_handler(std::vector<std::string> args);
   void calcSHA1(std::vector<std::string>& args, unsigned char* hash_ptr);
   void printHash(std::string length, std::string result);
-
+  void calcSHA256(std::vector<std::string>& args, unsigned char* hash_ptr);
 
   //void sendReplyPeerID(std::string ip, std::string port, std::size_t length);
 
