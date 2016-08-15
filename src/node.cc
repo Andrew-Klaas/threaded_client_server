@@ -21,6 +21,8 @@ void Node::start(std::string ip, std::string port) {
 	
   run_thread  = std::thread([&] { 
     while(Running){
+
+      // should i Split this up into 2, so threads can sleep? 
       decltype(pending_ops_q) pending_ops {};
       { 
         std::lock_guard<std::mutex> lck(pending_mtx);
@@ -30,6 +32,11 @@ void Node::start(std::string ip, std::string port) {
         pending_ops.front()(); 
         pending_ops.pop();
       }
+   }
+  });
+  
+  run_thread2  = std::thread([&] { 
+     while(Running) {
 
       decltype(recv_q) recv_ops {};
       {
@@ -237,6 +244,11 @@ void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
 
 
 void Node::join() {
+  Running = false;
+  /*
+  n_server.Running = false;
+  n_client.Running = false;
+  */
   run_thread.join();
   server_thread.join();
   client_thread.join();

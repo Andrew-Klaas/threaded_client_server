@@ -169,10 +169,9 @@ int Server::serve(std::string port,
 
                         }
 
-                        std::cout << "Node " << nodeID <<  " bytes_left: " << bytes_left << "\n";
-
                         if (bytes_left > 0) {
-                           printf("Node %d, recv'ing data\n", nodeID);
+                           printf("Node %d, recv'ing data, bytes left: %lu \n",
+                               nodeID, bytes_left);
                            nbytes = recv(i, (char*)buf.data(),
                                bytes_left, 0);
                            printf("Node %d, done recv'ing data\n", nodeID);
