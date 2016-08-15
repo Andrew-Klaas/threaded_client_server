@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
 
   sleep(1);
 
-  auto test = "0123456789k;laskefj;lwkejfwl;ekf";
+  auto test = "0123456789";
   node2.ReqHash("127.0.0.1","3490", "SHA1", test);
 
   /*

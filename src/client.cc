@@ -88,7 +88,7 @@ int Client::serve(std::string ip, std::string port,
         freeaddrinfo(servinfo); // all done with this structure
 
 
-        printf("rpc.buffer.size %zu \n",buffer.size());
+        //printf("rpc.buffer.size %zu \n",buffer.size());
         //char * out_buf = (char*)buffer.size() + buffer.data(); 
         //auto out_buf = std::to_string(buffer.size()) + to_string(buffer.data());
         //std::cout << decltype(buffer.data()) << "\n";
@@ -101,7 +101,7 @@ int Client::serve(std::string ip, std::string port,
         send(s, buf,1,0);
         */
 
-        printf("Node %d, sending data\n", nodeID);
+        //printf("Node %d, sending data\n", nodeID);
         //sendall(sockfd, (char*)buffer.size(), 1)
         if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
                perror("sendall");
