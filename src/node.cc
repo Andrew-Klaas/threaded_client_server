@@ -167,7 +167,8 @@ void Node::calcMD5(std::vector<std::string>& args, unsigned char*
 }
 
 void Node::printPeerID(std::string result) {
-  std::cout<< "Node: " << nodeID << " PEERID RESULT: " << result << "\n";  
+	printf("Node %d, ID received: %s\n",nodeID, result.c_str());
+
 }
 
 std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
@@ -189,8 +190,7 @@ void Node::printHash(std::string hash_fn, std::string length, std::string result
 }
 
 void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
-	printf("Node %d (Client) RequestID from  %s:%s\n", nodeID, ip.c_str(), port.c_str());
-  // fix this
+	printf("Node %d, RequestID from  %s:%s\n", nodeID, ip.c_str(), port.c_str());
   rpc_msg rpc;
   auto length_s = std::to_string(length);
   std::vector<std::string> args = { length_s, "0", "" };
@@ -200,6 +200,7 @@ void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
 }
 
 void Node::sendReplyPeerID(std::string ip, std::string port, std::size_t length){
+	printf("Node %d, received request for ID\n", nodeID);
   rpc_msg rpc;
   auto result = random_string(length);
   std::vector<std::string> args = { "", std::to_string(result.length()), result };
@@ -246,7 +247,7 @@ void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const 
 
 void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
     const char* data){
-	printf("Node %d (Client) Requesting %s Hash \n", nodeID, hash_fn.c_str());
+	printf("Node %d, Requesting %s Hash \n", nodeID, hash_fn.c_str());
   rpc_msg rpc;
   std::string data_s(data);
   std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };

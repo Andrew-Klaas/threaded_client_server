@@ -16,6 +16,9 @@ int main(int argc, char* argv[]){
   auto test = "0123456789";
 
   auto test_large = test_random_string(1024*1024); 
+
+	sleep(1);
+  node1.ReqPeerID("127.0.0.1","3491", 25 );
 	sleep(1);
   node2.ReqHash("127.0.0.1","3490", "MD5", test_large.c_str());
 	/*
