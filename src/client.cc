@@ -94,7 +94,6 @@ int Client::serve(std::string ip, std::string port,
                perror("sendall");
         }
         close(sockfd);
-        printf("done sending\n");
       } // if statement
     } // while loop
 

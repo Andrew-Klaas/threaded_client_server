@@ -1,6 +1,7 @@
 #ifndef NODE_H_
 #define NODE_H_
 
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,7 @@
 #include <algorithm>  //for std::generate_n
 #include <string>
 #include <openssl/sha.h>
+#include <openssl/md5.h>
 #include <limits>
 #include <random>
 
@@ -24,7 +26,9 @@
 #include "server.h"
 #include "types.h"
 
-//#define MAXDATASIZE 4096
+#define SHA_1_LENGTH 20
+#define SHA_256_LENGTH 32 
+#define MD5_LENGTH 16
 
 class Node {
 public:
@@ -57,6 +61,10 @@ public:
   void calcSHA1(std::vector<std::string>& args, unsigned char* hash_ptr);
   void printHash(std::string length, std::string result);
   void calcSHA256(std::vector<std::string>& args, unsigned char* hash_ptr);
+	void calcMD5(std::vector<std::string>& args, unsigned char* hash_ptr);
+
+  int validateNum(std::string port);
+	void prepareHashRpcSend(std::vector<std::string>& args,unsigned char* hash_ptr, std::string hash_return_size);
 
   //void sendReplyPeerID(std::string ip, std::string port, std::size_t length);
 

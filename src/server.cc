@@ -134,24 +134,14 @@ int Server::serve(std::string port,
                         if (newfd > fdmax) {    // keep track of the max
                             fdmax = newfd;
                         }
-                        /*
-                        printf("selectserver: new connection from %s on "
-                            "socket %d\n",
-                            inet_ntop(remoteaddr.ss_family,
-                                get_in_addr((struct sockaddr*)&remoteaddr),
-                                remoteIP, INET6_ADDRSTRLEN),
-                            newfd);
-                            */
                     }
                 } else {
-                    // handle data from a client
-                    // fix 4096
                     if ((nbytes = recv(i, buffer,
                             4, 0)) <= 0) {
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            printf("selectserver: socket %d hung up, no bytes\n", i);
+                            //printf("selectserver: socket %d hung up, no bytes\n", i);
                         } else {
                             perror("recv");
                         }
@@ -159,19 +149,15 @@ int Server::serve(std::string port,
                         FD_CLR(i, &master); // remove from master set
                     } else {
 
-                        printf("Node %d, receiving data\n", nodeID);  
+                        //printf("Node %d, receiving data\n", nodeID);  
 
                         unsigned long bytes_left = 0;
-
 
                         for ( int i = 3; i >= 0 ; i--){
                           //printf("%x, \n", buffer[i]);
                           bytes_left = bytes_left |  ((buffer[i] & 0xFF)<<8*i);
 
                         }
-
-                        printf("Node %d, Bytes left to Receive %lu \n", nodeID,
-                            bytes_left);  
 												
 												char test_buffer[bytes_left];
 
@@ -192,34 +178,19 @@ int Server::serve(std::string port,
                           }
                           bytes_received+=nbytes; 
                           bytes_left-=nbytes;
-                          printf("Node %d, received %d bytes\n", nodeID, nbytes);
+                          //printf("Node %d, received %d bytes\n", nodeID, nbytes);
 
                         }
-												printf("Node %d, total bytes received %d\n", nodeID, bytes_received);
+												//printf("Node %d, total bytes received %d\n", nodeID, bytes_received);
 												
-												printf("Node %d, size of test_buffer %lu \n",nodeID, sizeof(test_buffer));
 
                         msgpack::object_handle oh = msgpack::unpack(test_buffer, 
                            bytes_received);
-												printf("here1\n");
                         msgpack::object obj = oh.get();
-												printf("here2\n");
                         std::vector<std::string> rvec;
-												//std::vector<std::string> * rvec = new std::vector<std::string>;
-												printf("here3\n");
                         obj.convert(rvec);
-                        printf("Node %d, done unpacking into vector\n",nodeID);
 
-												/*
-                        printf("recived args begin: \n");
-                        for (auto& i : rvec) {
-                          std::cout << i << std::endl;
-                        }
-                        printf("received args end:\n");
-												*/
-                        
                         std::lock_guard<std::mutex> lck(recv_mtx);
-                        printf("Node %d, emplacing on recv queue\n", nodeID);
                         recv_q.emplace(std::move(rvec));
                         //cv.notify_all();
 
@@ -227,7 +198,7 @@ int Server::serve(std::string port,
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors
-    } // END for(;;)--and you thought it would never end!
+    } // END for(;;)
     
     return 0;
 }

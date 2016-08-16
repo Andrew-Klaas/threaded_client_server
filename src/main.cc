@@ -15,24 +15,33 @@ int main(int argc, char* argv[]){
 
   auto test = "0123456789";
 
-  
-
-
   auto test_large = test_random_string(1024*1024); 
-  //std::cout << test_large << std::endl;
-  node2.ReqHash("127.0.0.1","3490", "SHA256", test_large.c_str());
+	sleep(1);
+  node2.ReqHash("127.0.0.1","3490", "MD5", "12345");
+	/*
+	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+  node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+	*/
+
+
+
+
+
   //node1.ReqHash("127.0.0.1","3490", "SHA256", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
 
-  /*
-  node2.ReqPeerID("127.0.0.1","3490", 1024 );
-  sleep(1);
-  node2.ReqPeerID("127.0.0.1","3490", 25 );
-  sleep(1);
-  node1.ReqPeerID("127.0.0.1","3491", 5 );
-  */
+  //node2.ReqPeerID("127.0.0.1","3490", 1024 );
+  //node2.ReqPeerID("127.0.0.1","3490", 25 );
+  //node1.ReqPeerID("127.0.0.1","3491", 512 );
 
   //node2.ReqPeerID("127.0.0.1","3490", length );
   //node2.ReqPeerID("127.0.0.1","3490", length );
@@ -65,13 +74,11 @@ std::string test_random_string( std::size_t length ) {
 
 //TODO
 /*
+ 	 output match spec?
    lookup notify_all: http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
-   implement RPC mechanism 
-   - use struct for RPC? Golang style  
-   lambda functions, get rid of it ?
+	 error checking/handling
    valgrind
    memory copying, pass by more refs instead?
-   general refactor
-	 error handling
+	 commenting
 */
 
