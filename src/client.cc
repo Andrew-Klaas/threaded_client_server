@@ -44,14 +44,15 @@ int Client::serve(std::string ip, std::string port,
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
+				// is this an issue? use condition_variable perhaps?
         std::lock_guard<std::mutex> lck(send_mtx);
         auto rpc = std::move(pending_send_q.front());
-        //std::cout << "buffer: " << rpc.buffer.data() << std::endl;
         pending_send_q.pop();
         
         auto ip = std::move(rpc.ip);
         auto port = std::move(rpc.port);
         auto buffer = std::move(rpc.buffer);
+				auto rpc_fn = std::move(rpc.fn);
         std::size_t len;
         len = buffer.size();
         
@@ -81,7 +82,7 @@ int Client::serve(std::string ip, std::string port,
             fprintf(stderr, "client: failed to connect\n");
             return 2;
         } else {
-					printf("Node %d, connected to %s:%s ...\n", nodeID, ip.c_str(), port.c_str());
+					printf("Node %d, connected to %s:%s ...sending %s \n", nodeID, ip.c_str(), port.c_str(), rpc_fn.c_str());
 				}
 
         inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),

@@ -136,6 +136,7 @@ void Node::hash_handler(std::vector<std::string> args){
 
 void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char* hash_ptr, std::string hash_return_size){
 	rpc_msg rpc;
+	rpc.fn = rpc_args[3] + " Response";
 	auto ip = rpc_args[0];
 	auto port = rpc_args[1];
 	std::string result((char*)hash_ptr);
@@ -192,16 +193,17 @@ void Node::printHash(std::string hash_fn, std::string length, std::string result
 void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
 	printf("Node %d, RequestID from  %s:%s\n", nodeID, ip.c_str(), port.c_str());
   rpc_msg rpc;
+	rpc.fn = "ID Request";
   auto length_s = std::to_string(length);
   std::vector<std::string> args = { length_s, "0", "" };
   packRpcSendReq(rpc, "1", ip, port, args);
   pending_send_q.emplace(std::move(rpc));
-
 }
 
 void Node::sendReplyPeerID(std::string ip, std::string port, std::size_t length){
 	printf("Node %d, received request for ID\n", nodeID);
   rpc_msg rpc;
+  rpc.fn = "ID Response";	
   auto result = random_string(length);
   std::vector<std::string> args = { "", std::to_string(result.length()), result };
   packRpcSendReq(rpc, "2", ip, port, args);
@@ -249,6 +251,7 @@ void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
     const char* data){
 	printf("Node %d, Requesting %s Hash \n", nodeID, hash_fn.c_str());
   rpc_msg rpc;
+	rpc.fn = hash_fn + " Request";
   std::string data_s(data);
   std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };
   packRpcSendReq(rpc, "3", ip, port, args);
