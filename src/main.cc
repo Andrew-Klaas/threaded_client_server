@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 
   auto test_large = test_random_string(1024*1024); 
 	sleep(1);
-  node2.ReqHash("127.0.0.1","3490", "MD5", "12345");
+  node2.ReqHash("127.0.0.1","3490", "MD5", test_large.c_str());
 	/*
 	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
 	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());

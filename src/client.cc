@@ -80,7 +80,9 @@ int Client::serve(std::string ip, std::string port,
         if (p == NULL) {
             fprintf(stderr, "client: failed to connect\n");
             return 2;
-        }
+        } else {
+					printf("Node %d (Client) connected to %s:%s ...\n", nodeID, ip.c_str(), port.c_str());
+				}
 
         inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
                 s, sizeof s);

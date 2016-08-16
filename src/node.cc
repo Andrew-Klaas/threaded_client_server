@@ -100,7 +100,7 @@ void Node::msg_handler(std::vector<std::string> args){
   			 return;
 			 }
        pending_ops_q.emplace([=](){
-        printHash(std::move(args[4]), std::move(args[5]));
+        printHash(std::move(args[3]),std::move(args[4]), std::move(args[5]));
        });
      default: break;
    }
@@ -126,13 +126,12 @@ void Node::hash_handler(std::vector<std::string> args){
 		calcMD5(args, hash_ptr);
 		std::string hash_return_size = std::to_string(MD5_LENGTH);
 		prepareHashRpcSend(args, hash_ptr, hash_return_size);
-
 	}
   else {
     printf("undefined hash function\n");
 		return;
   }
-
+	printf("Node %d, received %s request from peer ... calculating hash\n",nodeID, args[3].c_str());
 }
 
 void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char* hash_ptr, std::string hash_return_size){
@@ -140,7 +139,7 @@ void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char*
 	auto ip = rpc_args[0];
 	auto port = rpc_args[1];
 	std::string result((char*)hash_ptr);
-	std::vector<std::string> args = { "", hash_return_size,
+	std::vector<std::string> args = { rpc_args[3], hash_return_size,
       result};
   packRpcSendReq(rpc, "4", ip, port, args);
 	pending_send_q.emplace(std::move(rpc));
@@ -180,9 +179,9 @@ std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length
   return "TODO";
 }
 
-void Node::printHash(std::string length, std::string result) {
+void Node::printHash(std::string hash_fn, std::string length, std::string result) {
   auto char_result = result.c_str();
-  printf("Node %d, recived hash result: ",nodeID);
+  printf("Node %d, received %s hash: ",nodeID, hash_fn.c_str());
   for(auto i = 0 ; i  < stoi(length); i++) {
       printf("%x",(unsigned char)char_result[i]);
   }
@@ -190,7 +189,7 @@ void Node::printHash(std::string length, std::string result) {
 }
 
 void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
-
+	printf("Node %d (Client) RequestID from  %s:%s\n", nodeID, ip.c_str(), port.c_str());
   // fix this
   rpc_msg rpc;
   auto length_s = std::to_string(length);
@@ -247,6 +246,7 @@ void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const 
 
 void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
     const char* data){
+	printf("Node %d (Client) Requesting %s Hash \n", nodeID, hash_fn.c_str());
   rpc_msg rpc;
   std::string data_s(data);
   std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };

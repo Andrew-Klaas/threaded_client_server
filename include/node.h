@@ -59,7 +59,7 @@ public:
 
   void hash_handler(std::vector<std::string> args);
   void calcSHA1(std::vector<std::string>& args, unsigned char* hash_ptr);
-  void printHash(std::string length, std::string result);
+  void printHash(std::string hash_fn, std::string length, std::string result);
   void calcSHA256(std::vector<std::string>& args, unsigned char* hash_ptr);
 	void calcMD5(std::vector<std::string>& args, unsigned char* hash_ptr);
 
