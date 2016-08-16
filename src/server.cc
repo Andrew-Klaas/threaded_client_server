@@ -163,6 +163,7 @@ int Server::serve(std::string port,
 
                         unsigned long bytes_left = 0;
 
+
                         for ( int i = 3; i >= 0 ; i--){
                           //printf("%x, \n", buffer[i]);
                           bytes_left = bytes_left |  ((buffer[i] & 0xFF)<<8*i);
@@ -171,14 +172,14 @@ int Server::serve(std::string port,
 
                         printf("Node %d, Bytes left to Receive %lu \n", nodeID,
                             bytes_left);  
-
-
+												
+												char test_buffer[bytes_left];
 
                         int bytes_received = 0;
                         auto bytes_total = bytes_left;
                         while (bytes_left > 0) {
                            
-                          if ((nbytes = recv(i, (char*)buf.data() +
+                          if ((nbytes = recv(i, test_buffer +
                                   bytes_received, bytes_left,
                                    0)) <= 0) {
                              if (nbytes == 0 ){
@@ -194,28 +195,32 @@ int Server::serve(std::string port,
                           printf("Node %d, received %d bytes\n", nodeID, nbytes);
 
                         }
+												printf("Node %d, total bytes received %d\n", nodeID, bytes_received);
+												
+												printf("Node %d, size of test_buffer %lu \n",nodeID, sizeof(test_buffer));
 
-                        msgpack::object_handle oh = msgpack::unpack(buf.data(),
-                            bytes_total);
+                        msgpack::object_handle oh = msgpack::unpack(test_buffer, 
+                           bytes_received);
+												printf("here1\n");
                         msgpack::object obj = oh.get();
+												printf("here2\n");
                         std::vector<std::string> rvec;
+												//std::vector<std::string> * rvec = new std::vector<std::string>;
+												printf("here3\n");
                         obj.convert(rvec);
-                         
                         printf("Node %d, done unpacking into vector\n",nodeID);
 
-                        /*
+												/*
                         printf("recived args begin: \n");
                         for (auto& i : rvec) {
                           std::cout << i << std::endl;
                         }
                         printf("received args end:\n");
-                        */
-                        
-
+												*/
                         
                         std::lock_guard<std::mutex> lck(recv_mtx);
                         printf("Node %d, emplacing on recv queue\n", nodeID);
-                        recv_q.emplace(rvec);
+                        recv_q.emplace(std::move(rvec));
                         //cv.notify_all();
 
                     }

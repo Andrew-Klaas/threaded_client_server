@@ -18,9 +18,9 @@ int main(int argc, char* argv[]){
   
 
 
-  auto test_large = test_random_string(50000); 
+  auto test_large = test_random_string(1024*1024); 
   //std::cout << test_large << std::endl;
-  node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
+  node2.ReqHash("127.0.0.1","3490", "SHA256", test_large.c_str());
   //node1.ReqHash("127.0.0.1","3490", "SHA256", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
@@ -72,5 +72,6 @@ std::string test_random_string( std::size_t length ) {
    valgrind
    memory copying, pass by more refs instead?
    general refactor
+	 error handling
 */
 
