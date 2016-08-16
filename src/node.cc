@@ -250,6 +250,7 @@ void Node::join() {
   n_client.Running = false;
   */
   run_thread.join();
+  run_thread2.join();
   server_thread.join();
   client_thread.join();
 }

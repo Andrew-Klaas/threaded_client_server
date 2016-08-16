@@ -151,7 +151,7 @@ int Server::serve(std::string port,
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            //printf("selectserver: socket %d hung up, no bytes\n", i);
+                            printf("selectserver: socket %d hung up, no bytes\n", i);
                         } else {
                             perror("recv");
                         }
@@ -169,24 +169,40 @@ int Server::serve(std::string port,
 
                         }
 
-                        if (bytes_left > 0) {
-                           printf("Node %d, recv'ing data, bytes left: %lu \n",
-                               nodeID, bytes_left);
-                           nbytes = recv(i, (char*)buf.data(),
-                               bytes_left, 0);
-                           printf("Node %d, done recv'ing data\n", nodeID);
+                        printf("Node %d, Bytes left to Receive %lu \n", nodeID,
+                            bytes_left);  
 
-                        }
-                        if (bytes_left - bytes_left > 0) {
-                          printf("ERROR, not all bytes received\n");
+
+
+                        int bytes_received = 0;
+                        auto bytes_total = bytes_left;
+                        while (bytes_left > 0) {
+                           
+                          if ((nbytes = recv(i, (char*)buf.data() +
+                                  bytes_received, bytes_left,
+                                   0)) <= 0) {
+                             if (nbytes == 0 ){
+                               //printf("selectserver_inner: socket %d hung up, no bytes\n", i);
+                             } else {
+                               perror("recv");
+                             }
+                             close(i);
+                             FD_CLR(i, &master);
+                          }
+                          bytes_received+=nbytes; 
+                          bytes_left-=nbytes;
+                          printf("Node %d, received %d bytes\n", nodeID, nbytes);
+
                         }
 
                         msgpack::object_handle oh = msgpack::unpack(buf.data(),
-                            bytes_left);
+                            bytes_total);
                         msgpack::object obj = oh.get();
                         std::vector<std::string> rvec;
                         obj.convert(rvec);
-                        
+                         
+                        printf("Node %d, done unpacking into vector\n",nodeID);
+
                         /*
                         printf("recived args begin: \n");
                         for (auto& i : rvec) {
@@ -196,8 +212,11 @@ int Server::serve(std::string port,
                         */
                         
 
+                        
                         std::lock_guard<std::mutex> lck(recv_mtx);
+                        printf("Node %d, emplacing on recv queue\n", nodeID);
                         recv_q.emplace(rvec);
+                        //cv.notify_all();
 
                     }
                 } // END handle data from client

@@ -116,7 +116,7 @@ int Client::sendall( int s, char *buf, unsigned long *len){
   printf("\n");
   */
   
-  printf("NODE %d, sending first, bytes: %lu \n",nodeID,*len);
+  //printf("NODE %d, sending first, bytes: %lu \n",nodeID,*len);
 
   auto first = send(s, p,4,0);
 
@@ -125,7 +125,7 @@ int Client::sendall( int s, char *buf, unsigned long *len){
     if (n == -1) {break;}
     total += n;
     bytesleft -= n;
-    printf("Node %d, bytes left to send: %lu \n",nodeID, bytesleft);
+    //printf("Node %d, bytes left to send: %lu \n",nodeID, bytesleft);
   }
 
   *len = total;

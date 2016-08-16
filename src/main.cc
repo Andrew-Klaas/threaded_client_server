@@ -65,18 +65,12 @@ std::string test_random_string( std::size_t length ) {
 
 //TODO
 /*
-   lookup notify_all
-   add locks for queue accesses
+   lookup notify_all: http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
    implement RPC mechanism 
    - use struct for RPC? Golang style  
-   lambda functions
-   rcv should keep the connection information
-   So i need to have a function that sets up network structs
-   then packs those and information into a request queue.
-   then server pulls off queue and does a send
-   Send out the RPC, then wait for reply in receive queue
+   lambda functions, get rid of it ?
    valgrind
    memory copying, pass by more refs instead?
    general refactor
-    
 */
+
