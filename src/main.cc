@@ -18,9 +18,11 @@ int main(int argc, char* argv[]){
 	
 	// generate 1MiB random string to hash
 	auto test_large = test_random_string(1048576); 
-	//auto test_large2 =  test_random_string(1048577); 
-  node2.ReqHash("127.0.0.1","3490", "MD5", test_large.c_str()); //Request SHA1 hash of test_large blob 
-	//node3.ReqHash("127.0.0.1","3490", "SHA256", test_large2.c_str()); //Request SHA1 hash of test_large blob 
+	auto test_large2 =  test_random_string(1048577); 
+  
+	node2.ReqHash("127.0.0.1","3490", "MD5", test_large.c_str()); //Request SHA1 hash of test_large blob 
+	node2.ReqHash("127.0.0.1","3490", "SHA256", test_large2.c_str()); //Request SHA1 hash of test_large blob 
+	//node3.ReqHash("127.0.0.1","3490", "SHA1", "123456789); //Request SHA1 hash of test_large blob 
 
 	//Let functions execute
 	sleep(1);

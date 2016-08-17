@@ -31,8 +31,8 @@ Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
  */
 int Node::start(std::string ip, std::string port) {
    //unsigned int nthreads = std::thread::hardware_concurrency();
- 	if((validateNum(port)) == -1) {
-		printf("Node %d, exiting\n", nodeID);
+ 	if(validateNum(port) == -1) {
+		printf("Node %d, exiting, invalid port number \n", nodeID);
 		return -1;
 	} else {
 		this->port = port;
