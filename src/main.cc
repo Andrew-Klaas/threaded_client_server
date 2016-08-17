@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
 
   auto test = "0123456789";
 
-  auto test_large = test_random_string(1024); 
+  auto test_large = test_random_string(1024*1024); 
 
 	sleep(1);
   node1.ReqPeerID("127.0.0.1","3491", 25 );
@@ -71,11 +71,12 @@ std::string test_random_string( std::size_t length ) {
 
 //TODO
 /*
+	 Add documentation on encapsulation
+	 clean up header files
+	 clean up cmakelist
    lookup notify_all: http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
 	 error checking/handling
    valgrind
    memory copying, pass by more refs instead?
-	 commenting
-   clean up header files
 */
 
