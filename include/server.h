@@ -17,10 +17,8 @@
 #include <msgpack.hpp>
 #include <queue>
 #include <mutex>
+
 #include "types.h"
-
-
-#define MAXDATASIZE 1024
 
 class Server {
 public: 

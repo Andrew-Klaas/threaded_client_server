@@ -1,7 +1,5 @@
 #include "server.h"
 
-#define PORT "3490"  // the port users will be connecting to
-
 #define BACKLOG 10     // how many pending connections queue will hold
 
 Server::Server(int NodeID) : nodeID(NodeID) {};
@@ -82,7 +80,6 @@ int Server::serve(std::string port,
             close(listener);
             continue;
         }
-
         break;
     }
 
@@ -106,9 +103,7 @@ int Server::serve(std::string port,
     // keep track of the biggest file descriptor
     fdmax = listener; // so far, it's this one
 
-    // main loop
-
-    char buffer[1];
+    
     //printf("server: waiting for connections\n");
     for(;;) {
         read_fds = master; // copy it
@@ -120,6 +115,8 @@ int Server::serve(std::string port,
         // run through the existing connections looking for data to read
         for(i = 0; i <= fdmax; i++) {
             if (FD_ISSET(i, &read_fds)) { // we got one!!
+                //4 or 1?
+                char buffer[4];
                 if (i == listener) {
                     // handle new connections
                     addrlen = sizeof remoteaddr;
@@ -148,13 +145,11 @@ int Server::serve(std::string port,
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-
-                        //printf("Node %d, receiving data\n", nodeID);  
-
                         unsigned long bytes_left = 0;
 
+                        // Extract how much data needs to be received from
+                        //  client
                         for ( int i = 3; i >= 0 ; i--){
-                          //printf("%x, \n", buffer[i]);
                           bytes_left = bytes_left |  ((buffer[i] & 0xFF)<<8*i);
 
                         }
@@ -182,7 +177,6 @@ int Server::serve(std::string port,
 
                         }
 												//printf("Node %d, total bytes received %d\n", nodeID, bytes_received);
-												
 
                         msgpack::object_handle oh = msgpack::unpack(test_buffer, 
                            bytes_received);

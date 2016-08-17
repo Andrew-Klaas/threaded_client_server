@@ -2,6 +2,20 @@
 
 Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
 
+/* Start Server
+ *  This function starts the client and server threads
+ * as well to watch the Pending_ops_q and the  recv_q.
+ * 
+ * When the Peer RPC's are called, their functions are 
+ * placed on the pending_ops_q. Then the run_thead will pull
+ * from the queue and execute before placing on teh pending_send_q
+ * for the client to send out on the wire.
+ *
+ * when Peer RPC's are received, their args are placed in the recv_q
+ * by the server. The args are pulled from the q and sent to the msg_handler
+ * by the run_thread2.
+ * 
+ */
 void Node::start(std::string ip, std::string port) {
    //unsigned int nthreads = std::thread::hardware_concurrency();
  	if((validateNum(port)) == -1) {
@@ -14,7 +28,7 @@ void Node::start(std::string ip, std::string port) {
  	//TODO check for valid address, or set to 127.0.0.1
 	this->port = port;
  
-	Running = true;
+	Running = true; 
 
   // start server thread
   server_thread = std::thread([&] { 
@@ -26,8 +40,8 @@ void Node::start(std::string ip, std::string port) {
       this->n_client.serve(ip, port, this->pending_send_q, send_mtx); 
   });
 	
-	// start thread to watch for pending operations
-  run_thread  = std::thread([&] { 
+	// start thread to watch for pending operations to execute
+  pending_ops_thread  = std::thread([&] { 
     while(Running){
 
       decltype(pending_ops_q) pending_ops {};
@@ -42,8 +56,8 @@ void Node::start(std::string ip, std::string port) {
    }
   });
 
- 	// start thread to watch for pending receives to execute 
-  run_thread2  = std::thread([&] { 
+ 	// start thread to watch for pending received operations from server
+  recv_ops_thread  = std::thread([&] { 
      while(Running) {
 
       decltype(recv_q) recv_ops {};
@@ -107,6 +121,10 @@ void Node::msg_handler(std::vector<std::string> args){
 
 }
 
+/* Hash related functions
+ *
+ *
+ */
 void Node::hash_handler(std::vector<std::string> args){
   if (args[3] == "SHA1") {
     unsigned char hash_ptr[SHA_1_LENGTH];
@@ -134,18 +152,6 @@ void Node::hash_handler(std::vector<std::string> args){
 	printf("Node %d, received %s request of %lu bytes of data from peer ... calculating hash\n", nodeID,args[3].c_str(),args[5].size() );
 }
 
-void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char* hash_ptr, std::string hash_return_size){
-	rpc_msg rpc;
-	rpc.fn = rpc_args[3] + " Response";
-	auto ip = rpc_args[0];
-	auto port = rpc_args[1];
-	std::string result((char*)hash_ptr);
-	std::vector<std::string> args = { rpc_args[3], hash_return_size,
-      result};
-  packRpcSendReq(rpc, "4", ip, port, args);
-	pending_send_q.emplace(std::move(rpc));
-}
-
 void Node::calcSHA1(std::vector<std::string>& args, unsigned char*
     hash_ptr) {
   auto data_ptr = args[5].c_str();
@@ -167,20 +173,6 @@ void Node::calcMD5(std::vector<std::string>& args, unsigned char*
   MD5((unsigned char*)data_ptr, args[5].size(), hash_ptr);
 }
 
-void Node::printPeerID(std::string result) {
-	printf("Node %d, ID received: %s\n",nodeID, result.c_str());
-
-}
-
-std::string Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
-  std::lock_guard<std::mutex> lck(pending_mtx); 
-  pending_ops_q.emplace([=](){
-      sendReqPeerID(ip, port, length);
-  });
-  //cv.notify_all();
-  return "TODO";
-}
-
 void Node::printHash(std::string hash_fn, std::string length, std::string result) {
   auto char_result = result.c_str();
   printf("Node %d, received %s hash: ",nodeID, hash_fn.c_str());
@@ -188,6 +180,52 @@ void Node::printHash(std::string hash_fn, std::string length, std::string result
       printf("%x",(unsigned char)char_result[i]);
   }
   printf("\n");
+}
+
+void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const char* data){
+  std::lock_guard<std::mutex> lck(pending_mtx); 
+  pending_ops_q.emplace([=](){
+      sendReqHash(ip, port, hash_fn, data);
+  });
+  //cv.notify_all();
+}
+
+void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
+    const char* data){
+	printf("Node %d, Requesting %s Hash of %lu bytes \n", nodeID, hash_fn.c_str(),
+      strlen(data));
+  rpc_msg rpc;
+	rpc.fn = hash_fn + " Request";
+  std::string data_s(data);
+  std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };
+  packRpcSendReq(rpc, "3", ip, port, args);
+  pending_send_q.emplace(std::move(rpc));
+
+}
+
+void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char* hash_ptr, std::string hash_return_size){
+	rpc_msg rpc;
+	rpc.fn = rpc_args[3] + " Response";
+	auto ip = rpc_args[0];
+	auto port = rpc_args[1];
+	std::string result((char*)hash_ptr);
+	std::vector<std::string> args = { rpc_args[3], hash_return_size,
+      result};
+  packRpcSendReq(rpc, "4", ip, port, args);
+	pending_send_q.emplace(std::move(rpc));
+}
+
+/* PeerID functions
+ *
+ *
+ */
+void Node::ReqPeerID(std::string ip, std::string port, std::size_t length){
+  std::lock_guard<std::mutex> lck(pending_mtx); 
+  pending_ops_q.emplace([=](){
+      sendReqPeerID(ip, port, length);
+  });
+  //cv.notify_all();
+  return;
 }
 
 void Node::sendReqPeerID(std::string ip, std::string port, std::size_t length){
@@ -225,7 +263,6 @@ std::string Node::random_string( std::size_t length ) {
     return str;
 }
 
-
 void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::string port, std::vector<std::string>& args){ 
   rpc.ip = ip;
   rpc.port = port;
@@ -239,32 +276,15 @@ void Node::packRpcSendReq(rpc_msg& rpc, std::string fn, std::string ip, std::str
 
 }
 
-void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const char* data){
-  std::lock_guard<std::mutex> lck(pending_mtx); 
-  pending_ops_q.emplace([=](){
-      sendReqHash(ip, port, hash_fn, data);
-  });
-  //cv.notify_all();
-}
-
-void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
-    const char* data){
-	printf("Node %d, Requesting %s Hash of %lu bytes \n", nodeID, hash_fn.c_str(),
-      strlen(data));
-  rpc_msg rpc;
-	rpc.fn = hash_fn + " Request";
-  std::string data_s(data);
-  std::vector<std::string> args = { hash_fn, std::to_string(data_s.length()) , data_s };
-  packRpcSendReq(rpc, "3", ip, port, args);
-  pending_send_q.emplace(std::move(rpc));
+void Node::printPeerID(std::string result) {
+	printf("Node %d, ID received: %s\n",nodeID, result.c_str());
 
 }
-
 
 void Node::join() {
   Running = false;
-  run_thread.join();
-  run_thread2.join();
+  pending_ops_thread.join();
+  recv_ops_thread.join();
   server_thread.join();
   client_thread.join();
 }

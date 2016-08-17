@@ -33,10 +33,6 @@ int main(int argc, char* argv[]){
 	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
 	*/
 
-
-
-
-
   //node1.ReqHash("127.0.0.1","3490", "SHA256", test);
   //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
   //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
@@ -58,7 +54,6 @@ int main(int argc, char* argv[]){
   return 0;
 };
 
-
 std::string test_random_string( std::size_t length ) {
     auto randchar = []() -> char
     {
@@ -73,7 +68,6 @@ std::string test_random_string( std::size_t length ) {
     std::generate_n(str.begin(), length, randchar );
     return str;
 }
-
 
 //TODO
 /*

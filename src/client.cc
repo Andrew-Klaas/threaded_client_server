@@ -90,9 +90,6 @@ int Client::serve(std::string ip, std::string port,
         
         freeaddrinfo(servinfo); // all done with this structure
 
-
-        //printf("rpc.buffer.size %zu \n",buffer.size());
-
         if (sendall(sockfd, (char*)buffer.data(), &len) == -1) {
                perror("sendall");
         }
@@ -111,16 +108,7 @@ int Client::sendall( int s, char *buf, unsigned long *len){
  
   unsigned char * p = (unsigned char*)&(*len);
 
-  /*
-  printf("\n");
-  for (int i = 0; i < 4; i++){
-    printf( "%x, i: %d\n", p[i], i);
-  }
-  printf("\n");
-  */
-  
-  //printf("NODE %d, sending first, bytes: %lu \n",nodeID,*len);
-
+  //Tell destination how much data we are about to send
   auto first = send(s, p,4,0);
 
   while(total < *len) {
@@ -128,12 +116,10 @@ int Client::sendall( int s, char *buf, unsigned long *len){
     if (n == -1) {break;}
     total += n;
     bytesleft -= n;
-    //printf("Node %d, bytes left to send: %lu \n",nodeID, bytesleft);
   }
 
   *len = total;
 
   return n == -1 ? -1 : 0;
-  return 0;
 }
 
