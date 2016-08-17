@@ -111,6 +111,7 @@ private:
   std::thread recv_ops_thread {};
 
   bool Running;
+
 };
 
 #endif 

@@ -51,7 +51,7 @@ int Node::start(std::string ip, std::string port) {
       this->n_server.serve(port, this->recv_q, recv_mtx); 
   });
 
-	//Let the server start up
+	//Only calling this to let the server start up
 	sleep(1);
 
   // start client thread
