@@ -131,7 +131,7 @@ void Node::hash_handler(std::vector<std::string> args){
     printf("undefined hash function\n");
 		return;
   }
-	printf("Node %d, received %s request from peer ... calculating hash\n",nodeID, args[3].c_str());
+	printf("Node %d, received %s request of %lu bytes of data from peer ... calculating hash\n", nodeID,args[3].c_str(),args[5].size() );
 }
 
 void Node::prepareHashRpcSend(std::vector<std::string>& rpc_args, unsigned char* hash_ptr, std::string hash_return_size){
@@ -249,7 +249,8 @@ void Node::ReqHash(std::string ip, std::string port, std::string hash_fn, const 
 
 void Node::sendReqHash(std::string ip, std::string port, std::string hash_fn,
     const char* data){
-	printf("Node %d, Requesting %s Hash \n", nodeID, hash_fn.c_str());
+	printf("Node %d, Requesting %s Hash of %lu bytes \n", nodeID, hash_fn.c_str(),
+      strlen(data));
   rpc_msg rpc;
 	rpc.fn = hash_fn + " Request";
   std::string data_s(data);
