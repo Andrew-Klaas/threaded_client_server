@@ -13,7 +13,7 @@ sudo apt-get install libssl-dev
 # Compiling
 ```
 git clone git@github.com:Andrew-Klaas/threaded_client_server.git
-cd build/
+cd threaded_client_server/build/
 cmake ..
 make
 ```
