@@ -6,50 +6,26 @@ std::string test_random_string( std::size_t length );
 int main(int argc, char* argv[]){
   
   Node node1(1);
-  Node node2(2);;
- 
-  node1.start("127.0.0.1", "3490");
-  node2.start("127.0.0.1", "3491");
+  Node node2(2);
+	//Node node3(3);
+  auto ready1 = node1.start("127.0.0.1", "3490");
+  auto ready2 = node2.start("127.0.0.1", "3491");
+	//auto ready3 = node3.start("127.0.0.1", "3492");
 
-  sleep(1);
+  
+  node1.ReqPeerID("127.0.0.1","3491", 512 ); //Request Random ID 512 bytes long from node2
+	
+	// generate 1MiB random string to hash
+	auto test_large = test_random_string(1048576); 
+  node2.ReqHash("127.0.0.1","3490", "MD5", test_large.c_str()); //Request SHA1 hash of test_large blob 
+	//node3.ReqHash("127.0.0.1","3490", "SHA256", test_large.c_str()); //Request SHA1 hash of test_large blob 
 
-  auto test = "0123456789";
-
-  auto test_large = test_random_string(1024*1024); 
-
+	//Let functions execute
 	sleep(1);
-  node1.ReqPeerID("127.0.0.1","3491", 25 );
-	sleep(1);
-  node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	/*
-	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node2.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-  node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	node1.ReqHash("127.0.0.1","3490", "SHA1", test_large.c_str());
-	*/
-
-  //node1.ReqHash("127.0.0.1","3490", "SHA256", test);
-  //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
-  //node1.ReqHash("127.0.0.1","3490", "SHA1", test);
-  //node2.ReqHash("127.0.0.1","3490", "SHA1", test);
-
-  //node2.ReqPeerID("127.0.0.1","3490", 1024 );
-  //node2.ReqPeerID("127.0.0.1","3490", 25 );
-  //node1.ReqPeerID("127.0.0.1","3491", 512 );
-
-  //node2.ReqPeerID("127.0.0.1","3490", length );
-  //node2.ReqPeerID("127.0.0.1","3490", length );
-
-  sleep(1);
-  //printf("\n%lu\n", sizeof(unsigned long));
 
   node1.join();
   node2.join();
+	//node3.join();
   
   return 0;
 };
@@ -71,12 +47,7 @@ std::string test_random_string( std::size_t length ) {
 
 //TODO
 /*
-	 Add documentation on encapsulation
-	 clean up header files
-	 clean up cmakelist
    lookup notify_all: http://en.cppreference.com/w/cpp/thread/condition_variable/notify_all
-	 error checking/handling
-   valgrind
-   memory copying, pass by more refs instead?
+	 error checking/handling: ip, stuff on wire
 */
 

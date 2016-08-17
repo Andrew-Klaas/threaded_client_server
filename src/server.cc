@@ -41,6 +41,7 @@ int Server::serve(std::string port,
     int newfd;        // newly accept()ed socket descriptor
     struct sockaddr_storage remoteaddr; // client address
     socklen_t addrlen;
+	  struct timeval tv;
 
     //char buf[256];    // buffer for client data
     msgpack::sbuffer buf;
@@ -103,15 +104,16 @@ int Server::serve(std::string port,
     // keep track of the biggest file descriptor
     fdmax = listener; // so far, it's this one
 
-    
+    Running = true; 
+    tv.tv_sec = 3;
+		tv.tv_usec = 0;
     //printf("server: waiting for connections\n");
-    for(;;) {
+    while(Running) {
         read_fds = master; // copy it
-        if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+        if (select(fdmax+1, &read_fds, NULL, NULL, &tv) == -1) {
             perror("select");
             exit(4);
-        }
-
+        } 
         // run through the existing connections looking for data to read
         for(i = 0; i <= fdmax; i++) {
             if (FD_ISSET(i, &read_fds)) { // we got one!!
@@ -173,10 +175,8 @@ int Server::serve(std::string port,
                           }
                           bytes_received+=nbytes; 
                           bytes_left-=nbytes;
-                          //printf("Node %d, received %d bytes\n", nodeID, nbytes);
 
                         }
-												//printf("Node %d, total bytes received %d\n", nodeID, bytes_received);
 
                         msgpack::object_handle oh = msgpack::unpack(test_buffer, 
                            bytes_received);

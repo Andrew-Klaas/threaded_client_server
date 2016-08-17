@@ -26,7 +26,7 @@ public:
   Server(int);
 	int serve(std::string port, std::queue<std::vector<std::string>>& recv_q, std::mutex& recv_mtx);
 	void * get_in_addr(struct sockaddr *sa);
-
+	bool Running;
 };
 
 #endif

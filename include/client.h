@@ -30,7 +30,6 @@ public:
       std::mutex& send_mtx);
   int sendall( int s, char *buf, unsigned long *len);
   bool Running;
-
 };
 
 #endif

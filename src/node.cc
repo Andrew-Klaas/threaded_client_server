@@ -1,5 +1,18 @@
 #include "node.h"
 
+/*
+ *  RPC protocol layout
+ *  The RPC messages are implemented using msgpackC and std::vector<std::string>
+ *  example with a -> std::vector<std::string> msg
+ *  msg[0] = Source IP
+ *  msg[1] = Source Port
+ *  msg[2] = Function to execute-> 
+ *     0: Undefined, 1: Request PeerID, 2: PeerID response, 3: Hash request, 4: Hash response
+ *  msg[3] = Length of requested PeerID, or the type of hash requested
+ *  msg[4] = Size of requested PeerID in bytes, or blob to hash in bytes
+ *  msg[5] = The data, example: the random PeerID or the hash value of the blob
+ */
+
 Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
 
 /* Start Server
@@ -16,17 +29,20 @@ Node::Node(int NodeID) : nodeID(NodeID), n_server(NodeID), n_client(NodeID) {};
  * by the run_thread2.
  * 
  */
-void Node::start(std::string ip, std::string port) {
+int Node::start(std::string ip, std::string port) {
    //unsigned int nthreads = std::thread::hardware_concurrency();
  	if((validateNum(port)) == -1) {
 		printf("Node %d, exiting\n", nodeID);
-		return;
+		return -1;
 	} else {
+		this->port = port;
+	}
+	if(!validateIpAddress(ip)){
+		printf("Node %d, invalid IP, exiting\n", nodeID);
+		return -1;
+  } else { 
 		this->ip = ip;
 	}
- 
- 	//TODO check for valid address, or set to 127.0.0.1
-	this->port = port;
  
 	Running = true; 
 
@@ -34,6 +50,9 @@ void Node::start(std::string ip, std::string port) {
   server_thread = std::thread([&] { 
       this->n_server.serve(port, this->recv_q, recv_mtx); 
   });
+
+	//Let the server start up
+	sleep(1);
 
   // start client thread
   client_thread = std::thread([&] { 
@@ -43,7 +62,6 @@ void Node::start(std::string ip, std::string port) {
 	// start thread to watch for pending operations to execute
   pending_ops_thread  = std::thread([&] { 
     while(Running){
-
       decltype(pending_ops_q) pending_ops {};
       { 
         std::lock_guard<std::mutex> lck(pending_mtx);
@@ -59,7 +77,6 @@ void Node::start(std::string ip, std::string port) {
  	// start thread to watch for pending received operations from server
   recv_ops_thread  = std::thread([&] { 
      while(Running) {
-
       decltype(recv_q) recv_ops {};
       {
           std::lock_guard<std::mutex> lck(recv_mtx);
@@ -71,18 +88,23 @@ void Node::start(std::string ip, std::string port) {
       }
     }
   });
-
+	return 0;
 }
 
+// Handle incoming messages from server
 void Node::msg_handler(std::vector<std::string> args){
   std::lock_guard<std::mutex> lck(pending_mtx); 
-	// check fn and port
-	// TODO check address
+	
 	if(((validateNum(args[2])) == -1) || (validateNum(args[1])) == -1) {
 		printf("Node %d, received Invalid msg \n", nodeID);
 		return;
 	}
-  int result = stoi(args[2]);
+	if(!validateIpAddress(args[0])){
+		printf("Node %d, received invalid IP\n", nodeID);
+		return;
+	}
+  
+	int result = stoi(args[2]);
    switch(result) {
      case 0:
        break;
@@ -282,7 +304,10 @@ void Node::printPeerID(std::string result) {
 }
 
 void Node::join() {
+	printf("Node %d, Shutting down\n", nodeID);
   Running = false;
+	n_server.Running = false;
+	n_client.Running = false;
   pending_ops_thread.join();
   recv_ops_thread.join();
   server_thread.join();
@@ -299,5 +324,10 @@ int Node::validateNum(std::string port){
 		return -1;
 	}
 	return 0;
+}
+bool Node::validateIpAddress(const std::string &ipAddress){
+    struct sockaddr_in sa;
+    int result = inet_pton(AF_INET, ipAddress.c_str(), &(sa.sin_addr));
+    return result != 0;
 }
 

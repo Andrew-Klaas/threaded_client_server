@@ -38,7 +38,7 @@ public:
   int nodeID;
   
   Node(int); //int is node's startup ID
-	void start(std::string ip, std::string port);  //Start threads
+	int start(std::string ip, std::string port);  //Start threads
   void join(); //Stop Node
   
   /* Request Peer ID
@@ -62,6 +62,7 @@ private:
   void msg_handler(std::vector<std::string> args);
 
   int validateNum(std::string port);
+	bool validateIpAddress(const std::string &ipAddress);
 
   //PeerID functions
   std::string random_string( std::size_t length ); 
@@ -98,16 +99,17 @@ private:
 
   std::mutex recv_mtx {};
   std::mutex send_mtx {};
+	std::mutex pending_mtx {};
 
 	std::queue<std::function<void()>> pending_ops_q {};
   std::queue<rpc_msg> pending_send_q {};
   std::queue<std::vector<std::string>> recv_q {};
-  std::thread client_thread {};
+  
+	std::thread client_thread {};
   std::thread server_thread {};
   std::thread pending_ops_thread {};
   std::thread recv_ops_thread {};
 
-	std::mutex pending_mtx {};
   bool Running;
 };
 
