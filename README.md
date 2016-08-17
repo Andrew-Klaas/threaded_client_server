@@ -9,14 +9,6 @@ Development environment:
 ```
 sudo apt-get install libssl-dev
 ```
-
-# Compiling
-```
-git clone git@github.com:Andrew-Klaas/threaded_client_server.git
-cd threaded_client_server/build/
-cmake ..
-make
-```
 ### MsgpackC
 - https://github.com/msgpack/msgpack-c
 ``` 
@@ -24,6 +16,13 @@ $ git clone https://github.com/msgpack/msgpack-c.git
 $ cd msgpack-c
 $ cmake -DMSGPACK_CXX11=ON .
 $ sudo make install
+```
+# Compiling
+```
+git clone git@github.com:Andrew-Klaas/threaded_client_server.git
+cd threaded_client_server/build/
+cmake ..
+make
 ```
 ## Example:
 see src/main.cc
@@ -40,7 +39,7 @@ see src/main.cc
   // Request SHA1 hash of the "blob" data from node1
   node2.ReqHash("127.0.0.1","3490", "SHA1", blob); 
   ```
-Example output with Hash of 1 MiB:
+Example output with hash of 1 MiB:
 ```
 Node 1, Server Starting on 3490  
 Node 2, Server Starting on 3491  
@@ -60,7 +59,7 @@ Node 2, received SHA1 hash: 2d693d25934f7ef6192dca21e7d69c2d6d8f72c
 see include/node.h and src/node.cc for API and some function explanations
 
 There are three main components to each peer in the design:
-a Node, server, and a client. Each node (the peer) has a nested server and client class which watch their respective work queues. Take a look at "Node::start()" in src/node.cc for details. Basically, the start function spawns all threads that watch for events/work to be placed on the queues. The client sends outbound requests, and the server handles inbound requests.
+a node, server, and  client. Each node (the peer) has a nested server and client class which watch their respective work queues. Take a look at "Node::start()" in src/node.cc for details. Basically, the start function spawns all threads that watch for events/work to be placed on the queues. The client sends outbound requests, and the server handles inbound requests. The other 2 "run" threads watch for pending work to be execute by the Node's functions.
 
 
 ## RPC protocol layout
